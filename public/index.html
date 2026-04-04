@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SolRouter — DeFi Risk Scanner</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet" />
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#04050d;--surface:#080d1a;--card:#0c1220;--card2:#101828;
+  --border:rgba(0,240,160,0.1);--border2:rgba(0,240,160,0.2);--border3:rgba(255,255,255,0.06);
+  --text:#e8edf5;--muted:#4a5568;--muted2:#6b7a94;
+  --accent:#00f0a0;--accent2:#0080ff;--danger:#ff3d3d;--warn:#f59e0b;
+  --mono:'Space Mono',monospace;--body:'Outfit',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:100vh;overflow-x:hidden;}
+.bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+.bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,240,160,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,240,160,0.04) 1px,transparent 1px);background-size:60px 60px;}
+.bg-glow1{position:absolute;top:-20%;left:-10%;width:600px;height:600px;background:radial-gradient(circle,rgba(0,240,160,0.08) 0%,transparent 70%);animation:drift1 20s ease-in-out infinite alternate;}
+.bg-glow2{position:absolute;bottom:-20%;right:-10%;width:700px;height:700px;background:radial-gradient(circle,rgba(0,128,255,0.07) 0%,transparent 70%);animation:drift2 25s ease-in-out infinite alternate;}
+.bg-glow3{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:900px;height:400px;background:radial-gradient(ellipse,rgba(124,58,237,0.05) 0%,transparent 70%);}
+@keyframes drift1{from{transform:translate(0,0)}to{transform:translate(60px,40px)}}
+@keyframes drift2{from{transform:translate(0,0)}to{transform:translate(-50px,-30px)}}
+.wrap{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:0 24px 100px;}
+nav{display:flex;align-items:center;justify-content:space-between;padding:28px 0;border-bottom:1px solid var(--border3);margin-bottom:80px;}
+.nav-logo{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent);letter-spacing:0.05em;}
+.nav-logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:blink 2s ease infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.nav-tag{font-family:var(--mono);font-size:10px;color:var(--muted2);border:1px solid var(--border3);border-radius:100px;padding:5px 12px;letter-spacing:0.06em;}
+.hero{text-align:center;margin-bottom:72px;animation:fadeUp 0.7s ease both;}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(0,240,160,0.06);border:1px solid var(--border2);border-radius:100px;padding:8px 20px;font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:32px;}
+.pulse-ring{width:8px;height:8px;border-radius:50%;background:var(--accent);position:relative;}
+.pulse-ring::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:1px solid var(--accent);animation:ring 2s ease infinite;}
+@keyframes ring{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(2.5)}}
+h1{font-size:clamp(40px,7vw,72px);font-weight:900;line-height:1.0;letter-spacing:-0.03em;margin-bottom:24px;}
+h1 .line1{color:var(--text);}
+h1 .line2{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{font-size:17px;color:var(--muted2);font-weight:400;line-height:1.7;max-width:520px;margin:0 auto 48px;}
+.stat-strip{display:flex;align-items:center;justify-content:center;border:1px solid var(--border3);border-radius:16px;overflow:hidden;margin-bottom:72px;animation:fadeUp 0.7s 0.1s ease both;}
+.strip-item{flex:1;padding:20px 24px;text-align:center;border-right:1px solid var(--border3);}
+.strip-item:last-child{border-right:none;}
+.strip-num{font-size:20px;font-weight:700;color:var(--accent);font-family:var(--mono);margin-bottom:4px;}
+.strip-label{font-size:10px;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase;font-family:var(--mono);}
+.scanner{background:var(--card);border:1px solid var(--border2);border-radius:24px;overflow:hidden;margin-bottom:32px;animation:fadeUp 0.7s 0.15s ease both;position:relative;}
+.scanner::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);}
+.scanner-header{display:flex;align-items:center;gap:8px;padding:16px 24px;border-bottom:1px solid var(--border3);background:var(--surface);}
+.dot-r{width:12px;height:12px;border-radius:50%;background:#ff5f57;}
+.dot-y{width:12px;height:12px;border-radius:50%;background:#febc2e;}
+.dot-g{width:12px;height:12px;border-radius:50%;background:#28c840;}
+.scanner-title{font-family:var(--mono);font-size:12px;color:var(--muted2);margin-left:8px;letter-spacing:0.04em;}
+.scanner-body{padding:32px;}
+.input-label{font-family:var(--mono);font-size:10px;color:var(--muted2);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px;display:block;}
+.input-wrap{display:flex;gap:12px;align-items:stretch;margin-bottom:16px;}
+.wallet-input{flex:1;background:var(--surface);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:16px 20px;font-family:var(--mono);font-size:13px;color:var(--text);outline:none;transition:border-color 0.2s,box-shadow 0.2s;letter-spacing:0.02em;}
+.wallet-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,240,160,0.08);}
+.wallet-input::placeholder{color:var(--muted);}
+.scan-btn{background:var(--accent);color:#000;border:none;border-radius:14px;padding:16px 32px;font-family:var(--body);font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.2s;letter-spacing:0.02em;position:relative;overflow:hidden;}
+.scan-btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,240,160,0.3);}
+.scan-btn:active{transform:scale(0.97);}
+.scan-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none;}
+.hint-row{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--muted);}
+.hint-chip{background:rgba(0,240,160,0.06);border:1px solid var(--border);border-radius:6px;padding:3px 8px;color:var(--accent);font-size:10px;}
+.loading{display:none;background:var(--card);border:1px solid var(--border2);border-radius:24px;padding:60px 32px;text-align:center;margin-bottom:32px;animation:fadeUp 0.3s ease both;}
+.loading.active{display:block;}
+.scan-anim{width:80px;height:80px;margin:0 auto 28px;position:relative;}
+.scan-ring{width:80px;height:80px;border-radius:50%;border:2px solid rgba(0,240,160,0.1);border-top-color:var(--accent);position:absolute;inset:0;animation:spin 1s linear infinite;}
+.scan-ring2{width:56px;height:56px;border-radius:50%;border:2px solid rgba(0,128,255,0.1);border-bottom-color:var(--accent2);position:absolute;top:12px;left:12px;animation:spin 1.5s linear infinite reverse;}
+.scan-dot2{width:10px;height:10px;border-radius:50%;background:var(--accent);position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 0 12px var(--accent);animation:blink 1s ease infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-title{font-size:18px;font-weight:600;margin-bottom:10px;}
+.loading-steps{display:flex;flex-direction:column;gap:8px;margin-top:28px;text-align:left;max-width:320px;margin-left:auto;margin-right:auto;}
+.step{display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:11px;color:var(--muted);padding:8px 12px;border-radius:8px;background:var(--surface);transition:all 0.3s;border:1px solid transparent;}
+.step.active{color:var(--text);background:rgba(0,240,160,0.06);border-color:var(--border);}
+.step.done{color:var(--accent);}
+.step-icon{width:16px;text-align:center;flex-shrink:0;}
+.error-box{display:none;background:rgba(255,61,61,0.06);border:1px solid rgba(255,61,61,0.2);border-radius:16px;padding:20px 24px;font-family:var(--mono);font-size:13px;color:#ff9999;margin-bottom:24px;animation:fadeUp 0.3s ease both;}
+.error-box.active{display:block;}
+.results{display:none;animation:fadeUp 0.5s ease both;}
+.results.active{display:block;}
+.demo-note{display:none;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);border-radius:12px;padding:12px 16px;font-family:var(--mono);font-size:11px;color:var(--warn);margin-bottom:16px;}
+.risk-hero{border-radius:24px;padding:40px;margin-bottom:20px;position:relative;overflow:hidden;}
+.risk-hero.LOW{background:rgba(0,240,160,0.06);border:1px solid rgba(0,240,160,0.2);}
+.risk-hero.MEDIUM{background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);}
+.risk-hero.HIGH{background:rgba(255,61,61,0.06);border:1px solid rgba(255,61,61,0.2);}
+.risk-inner{display:flex;align-items:center;justify-content:space-between;gap:32px;}
+.risk-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;}
+.risk-score{font-size:72px;font-weight:900;letter-spacing:-0.04em;line-height:1;margin-bottom:8px;}
+.LOW .risk-score{color:var(--accent);}
+.MEDIUM .risk-score{color:var(--warn);}
+.HIGH .risk-score{color:var(--danger);}
+.risk-label-sm{font-size:14px;color:var(--muted2);}
+.risk-right{flex:1;max-width:380px;}
+.risk-summary-text{font-size:15px;line-height:1.7;color:var(--text);}
+.gauge-wrap{margin-top:20px;}
+.gauge-bar{height:6px;border-radius:100px;background:rgba(255,255,255,0.06);overflow:hidden;margin-bottom:6px;}
+.gauge-fill{height:100%;border-radius:100px;transition:width 1.2s cubic-bezier(0.4,0,0.2,1);}
+.LOW .gauge-fill{background:var(--accent);width:20%;}
+.MEDIUM .gauge-fill{background:var(--warn);width:58%;}
+.HIGH .gauge-fill{background:var(--danger);width:92%;}
+.gauge-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--muted);}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
+.stat-box{background:var(--card);border:1px solid var(--border3);border-radius:16px;padding:20px;transition:border-color 0.2s;position:relative;overflow:hidden;}
+.stat-box:hover{border-color:var(--border2);}
+.stat-box::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,240,160,0.4),transparent);opacity:0;transition:opacity 0.3s;}
+.stat-box:hover::after{opacity:1;}
+.stat-tag{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;}
+.stat-val{font-size:22px;font-weight:700;color:var(--text);letter-spacing:-0.02em;font-family:var(--mono);}
+.stat-val.ac{color:var(--accent);}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.panel{background:var(--card);border:1px solid var(--border3);border-radius:20px;padding:24px;}
+.panel-head{display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border3);}
+.panel-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;}
+.panel-icon.w{background:rgba(245,158,11,0.1);}
+.panel-icon.g{background:rgba(0,240,160,0.1);}
+.panel-title{font-size:13px;font-weight:600;}
+.panel-count{margin-left:auto;font-family:var(--mono);font-size:10px;background:var(--surface);border:1px solid var(--border3);border-radius:100px;padding:3px 10px;color:var(--muted2);}
+.item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border3);}
+.item:last-child{border-bottom:none;padding-bottom:0;}
+.item-bul{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:6px;}
+.item-bul.w{background:var(--warn);}
+.item-bul.g{background:var(--accent);}
+.item-text{font-size:13px;color:var(--muted2);line-height:1.5;}
+.token-panel{background:var(--card);border:1px solid var(--border3);border-radius:20px;padding:24px;margin-bottom:20px;}
+.token-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border3);}
+.token-row:last-child{border-bottom:none;}
+.token-mint{font-family:var(--mono);font-size:11px;color:var(--muted2);word-break:break-all;flex:1;margin-right:16px;}
+.token-bal{font-family:var(--mono);font-size:12px;color:var(--accent);white-space:nowrap;background:rgba(0,240,160,0.06);border:1px solid var(--border);border-radius:6px;padding:3px 8px;}
+.privacy-bar{display:flex;align-items:flex-start;gap:16px;background:rgba(0,128,255,0.04);border:1px solid rgba(0,128,255,0.12);border-radius:16px;padding:20px 24px;margin-bottom:20px;}
+.privacy-icon{width:36px;height:36px;border-radius:10px;background:rgba(0,128,255,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--accent2);}
+.privacy-title{font-size:13px;font-weight:600;margin-bottom:4px;}
+.privacy-text{font-size:12px;color:var(--muted2);line-height:1.6;font-family:var(--mono);}
+.page-footer{text-align:center;margin-top:80px;padding-top:32px;border-top:1px solid var(--border3);font-family:var(--mono);font-size:11px;color:var(--muted);animation:fadeUp 0.7s 0.3s ease both;}
+.page-footer a{color:var(--accent);text-decoration:none;}
+.footer-row{margin-bottom:16px;}
+.footer-socials{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;}
+.social-chip{display:inline-flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--border3);border-radius:100px;padding:6px 14px;font-family:var(--mono);font-size:10px;color:var(--muted2);text-decoration:none;transition:all 0.2s;letter-spacing:0.04em;}
+.social-chip:hover{border-color:var(--border2);color:var(--accent);background:rgba(0,240,160,0.05);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+/* ── Tablet (768px) ── */
+@media(max-width:768px){
+  .wrap{padding:0 20px 80px;}
+  h1{font-size:clamp(34px,6vw,52px);}
+  .hero{margin-bottom:48px;}
+  .stat-strip{margin-bottom:48px;}
+  .hero-sub{font-size:15px;}
+}
+/* ── Large phones (640px) ── */
+@media(max-width:640px){
+  nav{padding:20px 0;margin-bottom:48px;}
+  .nav-logo{font-size:11px;}
+  .two-col{grid-template-columns:1fr;}
+  .stats-row{grid-template-columns:1fr 1fr;}
+  .stat-strip{flex-wrap:wrap;}
+  .strip-item{min-width:50%;border-bottom:1px solid var(--border3);}
+  .strip-item:nth-child(odd){border-right:1px solid var(--border3);}
+  .strip-item:nth-child(even){border-right:none;}
+  .strip-item:last-child,.strip-item:nth-last-child(2){border-bottom:none;}
+  .risk-inner{flex-direction:column;gap:20px;}
+  .risk-right{max-width:100%;}
+  .input-wrap{flex-direction:column;}
+  .scan-btn{width:100%;padding:16px;}
+  h1{font-size:36px;}
+  .risk-score{font-size:52px;}
+  .risk-hero{padding:28px 20px;}
+  .scanner-body{padding:20px;}
+  .panel{padding:18px;}
+  .hero-eyebrow{font-size:10px;padding:6px 14px;}
+  .stat-box{padding:16px;}
+  .stat-val{font-size:18px;}
+}
+/* ── Small phones (480px) ── */
+@media(max-width:480px){
+  .wrap{padding:0 16px 60px;}
+  nav{margin-bottom:36px;}
+  .nav-tag{display:none;}
+  h1{font-size:30px;letter-spacing:-0.02em;}
+  .hero-sub{font-size:14px;}
+  .hero{margin-bottom:36px;}
+  .stat-strip{margin-bottom:36px;}
+  .strip-item{padding:14px 12px;}
+  .strip-num{font-size:16px;}
+  .strip-label{font-size:9px;}
+  .stats-row{grid-template-columns:1fr;}
+  .scanner-header{padding:12px 16px;}
+  .scanner-title{display:none;}
+  .risk-score{font-size:44px;}
+  .loading-steps{max-width:100%;}
+  .token-mint{font-size:10px;}
+  .privacy-bar{flex-direction:column;gap:12px;}
+  .privacy-icon{width:28px;height:28px;}
+}
+/* ── Extra small (375px) ── */
+@media(max-width:375px){
+  h1{font-size:26px;}
+  .scan-btn{font-size:13px;padding:14px;}
+  .wallet-input{font-size:12px;padding:14px 14px;}
+  .risk-score{font-size:38px;}
+  .hero-eyebrow{display:none;}
+  .stat-strip{display:grid;grid-template-columns:1fr 1fr;}
+  .strip-item{border-right:none!important;border-bottom:1px solid var(--border3)!important;}
+  .strip-item:nth-child(odd){border-right:1px solid var(--border3)!important;}
+  .strip-item:last-child,.strip-item:nth-last-child(2):nth-child(odd){border-bottom:none!important;}
+}
+</style>
+</head>
+<body>
+<div class="bg-layer">
+  <div class="bg-grid"></div>
+  <div class="bg-glow1"></div>
+  <div class="bg-glow2"></div>
+  <div class="bg-glow3"></div>
+</div>
+
+<div class="wrap">
+  <nav>
+    <div class="nav-logo"><div class="nav-logo-dot"></div>SOLROUTER · RISK SCANNER</div>
+    <div class="nav-tag">SOLANA DEVNET</div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-eyebrow"><div class="pulse-ring"></div>Encrypted Inference · Powered by SolRouter</div>
+    <h1><div class="line1">DeFi Portfolio</div><div class="line2">Risk Intelligence</div></h1>
+    <p class="hero-sub">Scan any Solana wallet for DeFi risk. Your query is encrypted before it leaves your device — processed in isolated hardware on Nosana's decentralized GPU network.</p>
+  </section>
+
+  <div class="stat-strip">
+    <div class="strip-item"><div class="strip-num">256-bit</div><div class="strip-label">Encryption</div></div>
+    <div class="strip-item"><div class="strip-num">TEE</div><div class="strip-label">Isolation</div></div>
+    <div class="strip-item"><div class="strip-num">0</div><div class="strip-label">Data Logged</div></div>
+    <div class="strip-item"><div class="strip-num">On-chain</div><div class="strip-label">Verifiable</div></div>
+  </div>
+
+  <div class="scanner">
+    <div class="scanner-header">
+      <div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div>
+      <span class="scanner-title">wallet-scanner.js — SolRouter Agent v1.0</span>
+    </div>
+    <div class="scanner-body">
+      <label class="input-label" for="wallet-input">// enter solana wallet address</label>
+      <div class="input-wrap">
+        <input id="wallet-input" class="wallet-input" type="text" placeholder="7iM3vNN15rTa9b2B1Rg1UCZUEwSA1eRswja6a4gjFjb9" spellcheck="false" autocomplete="off"/>
+        <button class="scan-btn" id="scan-btn" onclick="runScan()">Run Scan →</button>
+      </div>
+      <div class="hint-row">
+        <span class="hint-chip">DEVNET</span>
+        Enter any valid Solana wallet · All queries encrypted end-to-end
+      </div>
+    </div>
+  </div>
+
+  <div class="error-box" id="error-box"></div>
+
+  <div class="loading" id="loading">
+    <div class="scan-anim">
+      <div class="scan-ring"></div>
+      <div class="scan-ring2"></div>
+      <div class="scan-dot2"></div>
+    </div>
+    <div class="loading-title">Scanning Wallet</div>
+    <div class="loading-steps">
+      <div class="step" id="step1"><span class="step-icon">◉</span> Connecting to Solana Devnet</div>
+      <div class="step" id="step2"><span class="step-icon">◎</span> Fetching on-chain positions</div>
+      <div class="step" id="step3"><span class="step-icon">◎</span> Encrypting query payload</div>
+      <div class="step" id="step4"><span class="step-icon">◎</span> SolRouter encrypted inference</div>
+      <div class="step" id="step5"><span class="step-icon">◎</span> Generating risk report</div>
+    </div>
+  </div>
+
+  <div class="results" id="results">
+    <div class="demo-note" id="demo-note">⚠ Nosana GPU nodes warming up — showing on-device analysis. Encrypted inference activates when nodes are live.</div>
+
+    <div class="risk-hero" id="risk-hero">
+      <div class="risk-inner">
+        <div>
+          <div class="risk-eyebrow">// risk assessment</div>
+          <div class="risk-score" id="risk-level-text">—</div>
+          <div class="risk-label-sm">Overall Portfolio Risk</div>
+          <div class="gauge-wrap">
+            <div class="gauge-bar"><div class="gauge-fill" id="gauge-fill"></div></div>
+            <div class="gauge-labels"><span>Low</span><span>Medium</span><span>High</span></div>
+          </div>
+        </div>
+        <div class="risk-right">
+          <p class="risk-summary-text" id="risk-summary-text">—</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-tag">SOL Balance</div>
+        <div class="stat-val" id="sol-val">—</div>
+        <div class="stat-sub">Native token</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-tag">SPL Tokens</div>
+        <div class="stat-val ac" id="token-val">—</div>
+        <div class="stat-sub">Token accounts</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-tag">Scanned At</div>
+        <div class="stat-val" style="font-size:13px;margin-top:4px" id="time-val">—</div>
+        <div class="stat-sub">Devnet · Live data</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-icon w">⚑</div>
+          <div class="panel-title">Risk Flags</div>
+          <div class="panel-count" id="flags-count">0</div>
+        </div>
+        <div id="flags-list"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-icon g">✦</div>
+          <div class="panel-title">Recommendations</div>
+          <div class="panel-count" id="recs-count">0</div>
+        </div>
+        <div id="recs-list"></div>
+      </div>
+    </div>
+
+    <div class="token-panel" id="token-panel" style="display:none">
+      <div class="panel-head" style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border3)">
+        <div class="panel-icon g">◈</div>
+        <div class="panel-title">SPL Token Positions</div>
+      </div>
+      <div id="token-list"></div>
+    </div>
+
+    <div class="privacy-bar">
+      <div class="privacy-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <div>
+        <div class="privacy-title">End-to-End Encrypted Analysis</div>
+        <div class="privacy-text">Wallet data encrypted before leaving your device. Processed inside a Trusted Execution Environment (TEE) on Nosana's decentralized GPU network — no centralized server ever sees your raw query.</div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="page-footer">
+    <div class="footer-row">
+      Built by <a href="https://x.com/Olamiayan" target="_blank">OlaTech IT</a>
+      &nbsp;·&nbsp;
+      Powered by <a href="https://solrouter.com" target="_blank">SolRouter</a>
+    </div>
+    <div class="footer-socials">
+      <a href="https://x.com/SolRouterAI" target="_blank" class="social-chip">𝕏 @SolRouterAI</a>
+      <a href="https://t.me/+uEgTRV5CivVmYTRi" target="_blank" class="social-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg> Telegram</a>
+      <a href="https://solrouter.com/docs" target="_blank" class="social-chip">📄 Docs</a>
+      <a href="https://nosana.io" target="_blank" class="social-chip">⚡ Nosana</a>
+      <a href="https://solana.com" target="_blank" class="social-chip">◎ Solana</a>
+    </div>
+  </footer>
+</div>
+
+<script>
+const STEPS=['step1','step2','step3','step4','step5'];
+function setStep(n){
+  STEPS.forEach((id,i)=>{
+    const el=document.getElementById(id);
+    el.className='step'+(i<n?' done':i===n?' active':'');
+    el.querySelector('.step-icon').textContent=i<n?'✓':i===n?'◉':'◎';
+  });
+}
+async function runScan(){
+  const wallet=document.getElementById('wallet-input').value.trim();
+  const btn=document.getElementById('scan-btn');
+  const loading=document.getElementById('loading');
+  const results=document.getElementById('results');
+  const errorBox=document.getElementById('error-box');
+  if(!wallet){showError('Please enter a Solana wallet address.');return;}
+  errorBox.classList.remove('active');
+  results.classList.remove('active');
+  document.getElementById('demo-note').style.display='none';
+  loading.classList.add('active');
+  btn.disabled=true;btn.textContent='Scanning...';
+  setStep(0);
+  setTimeout(()=>setStep(1),800);
+  setTimeout(()=>setStep(2),2200);
+  setTimeout(()=>setStep(3),3800);
+  setTimeout(()=>setStep(4),5500);
+  try{
+    const res=await fetch('/api/scan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({wallet})});
+    const data=await res.json();
+    if(!res.ok||data.error)throw new Error(data.error||'Unknown error');
+    setStep(5);
+    setTimeout(()=>{loading.classList.remove('active');renderResults(data.portfolio,data.report);},700);
+  }catch(err){
+    loading.classList.remove('active');
+    showError(err.message);
+  }finally{
+    btn.disabled=false;btn.textContent='Run Scan →';
+  }
+}
+function renderResults(portfolio,report){
+  const hero=document.getElementById('risk-hero');
+  hero.className='risk-hero '+report.riskLevel;
+  document.getElementById('risk-level-text').textContent=report.riskLevel;
+  document.getElementById('risk-summary-text').textContent=report.summary;
+  document.getElementById('sol-val').textContent=portfolio.solBalance.toFixed(4)+' SOL';
+  document.getElementById('token-val').textContent=portfolio.tokenCount;
+  document.getElementById('time-val').textContent=new Date(portfolio.fetchedAt).toLocaleTimeString();
+  const flagsEl=document.getElementById('flags-list');
+  flagsEl.innerHTML=report.flags.map(f=>`<div class="item"><div class="item-bul w"></div><div class="item-text">${f}</div></div>`).join('');
+  document.getElementById('flags-count').textContent=report.flags.length;
+  const recsEl=document.getElementById('recs-list');
+  recsEl.innerHTML=report.recommendations.map(r=>`<div class="item"><div class="item-bul g"></div><div class="item-text">${r}</div></div>`).join('');
+  document.getElementById('recs-count').textContent=report.recommendations.length;
+  if(portfolio.tokens&&portfolio.tokens.length>0){
+    const tp=document.getElementById('token-panel');
+    tp.style.display='block';
+    document.getElementById('token-list').innerHTML=portfolio.tokens.map(t=>`<div class="token-row"><div class="token-mint">${t.mint}</div><div class="token-bal">${t.balance??0} tokens</div></div>`).join('');
+  }
+  if(report._demo)document.getElementById('demo-note').style.display='block';
+  document.getElementById('results').classList.add('active');
+}
+function showError(msg){
+  const el=document.getElementById('error-box');
+  el.textContent='⚠ '+msg;
+  el.classList.add('active');
+}
+document.getElementById('wallet-input').addEventListener('keydown',e=>{if(e.key==='Enter')runScan();});
+</script>
+</body>
+</html>
