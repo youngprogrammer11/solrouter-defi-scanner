@@ -100,6 +100,7 @@ h1{font-size:clamp(36px,6vw,64px);font-weight:900;line-height:1.0;letter-spacing
 /* LOADING */
 .loading{display:none;background:var(--card);border:1px solid var(--border2);border-radius:var(--radius-xl);padding:52px 28px;text-align:center;margin-bottom:24px;}
 .loading.show{display:block;}
+.loading.show{display:block;}
 .spin-wrap{width:76px;height:76px;margin:0 auto 24px;position:relative;}
 .sr1{width:76px;height:76px;border-radius:50%;border:2px solid rgba(0,240,160,0.1);border-top-color:var(--accent);position:absolute;inset:0;animation:spin 0.9s linear infinite;}
 .sr2{width:52px;height:52px;border-radius:50%;border:2px solid rgba(0,128,255,0.1);border-bottom-color:var(--accent2);position:absolute;top:12px;left:12px;animation:spin 1.4s linear infinite reverse;}
@@ -252,7 +253,7 @@ h1{font-size:clamp(36px,6vw,64px);font-weight:900;line-height:1.0;letter-spacing
 .action-btn.primary{background:rgba(0,240,160,0.08);border-color:var(--border2);color:var(--accent);}
 
 /* HISTORY PANEL */
-.history-panel{background:var(--card);border:1px solid var(--border3);border-radius:var(--radius-lg);padding:20px;margin-bottom:20px;display:none;}
+.history-panel{background:var(--card);border:1px solid var(--border3);border-radius:var(--radius-lg);padding:20px;margin-bottom:20px;}
 .history-panel.show{display:block;}
 .history-title{font-family:var(--mono);font-size:11px;color:var(--muted2);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:14px;}
 .history-list{display:flex;flex-direction:column;gap:8px;}
@@ -336,7 +337,6 @@ h1{font-size:clamp(36px,6vw,64px);font-weight:900;line-height:1.0;letter-spacing
     <div class="nav-logo">SOLROUTER · RISK INTELLIGENCE</div>
   </div>
   <div class="nav-right">
-    <button class="nav-btn" id="history-btn" onclick="toggleHistory()">⏱ History</button>
     <button class="nav-btn" id="theme-btn" onclick="toggleTheme()">☀ Light</button>
   </div>
 </nav>
@@ -362,12 +362,11 @@ h1{font-size:clamp(36px,6vw,64px);font-weight:900;line-height:1.0;letter-spacing
 <div class="scanner">
   <div class="scanner-header"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div><span class="scanner-title">risk-scanner.js — SolRouter Agent v2.0 · Solana Devnet</span></div>
   <div class="scanner-body">
-    <label class="input-label" for="w1">// enter solana wallet address</label>
-    <div class="input-row">
-      <input id="w1" class="wallet-input" type="text" placeholder="e.g. 7iM3vNN15rTa9b2B1Rg1UCZUEwSA1eRswja6a4gjFjb9" spellcheck="false" autocomplete="off"/>
-      <button class="scan-btn" id="scan-btn" onclick="runScan()">Run Scan →</button>
+    <label class="input-label" id="input-label">// enter solana wallet address</label>
+    <div id="single-row" style="margin-bottom:10px">
+      <input id="w1" class="wallet-input" type="text" style="width:100%" placeholder="e.g. 7iM3vNN15rTa9b2B1Rg1UCZUEwSA1eRswja6a4gjFjb9" spellcheck="false" autocomplete="off"/>
     </div>
-    <div class="compare-inputs" id="compare-inputs">
+    <div class="compare-inputs" id="compare-inputs" style="display:none">
       <div class="compare-col">
         <div class="compare-label">// Wallet A</div>
         <input id="wA" class="wallet-input" type="text" placeholder="First wallet address" spellcheck="false" autocomplete="off"/>
@@ -377,10 +376,18 @@ h1{font-size:clamp(36px,6vw,64px);font-weight:900;line-height:1.0;letter-spacing
         <input id="wB" class="wallet-input" type="text" placeholder="Second wallet address" spellcheck="false" autocomplete="off"/>
       </div>
     </div>
+    <button class="scan-btn" id="scan-btn" onclick="runScan()" style="width:100%;margin-top:10px;margin-bottom:14px">Run Scan →</button>
     <div class="hint-row">
       <span class="chip">DEVNET</span>
       <span class="chip">ENCRYPTED</span>
       All queries encrypted end-to-end · Powered by SolRouter + Nosana
+    </div>
+    <div id="recent-row" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border3)">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
+        <span>Recent Scans</span>
+        <span onclick="clearHistory()" style="cursor:pointer;color:var(--muted);font-size:10px" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--muted)'">Clear</span>
+      </div>
+      <div id="recent-chips" style="display:flex;flex-wrap:wrap;gap:8px"></div>
     </div>
   </div>
 </div>
@@ -400,10 +407,7 @@ h1{font-size:clamp(36px,6vw,64px);font-weight:900;line-height:1.0;letter-spacing
   </div>
 </div>
 
-<div class="history-panel" id="history-panel">
-  <div class="history-title">Recent Scans <span class="h-clear" onclick="clearHistory()">Clear all</span></div>
-  <div class="history-list" id="history-list"></div>
-</div>
+
 
 <!-- SINGLE RESULTS -->
 <div class="results" id="results">
@@ -543,58 +547,61 @@ function setMode(m) {
   mode = m;
   document.getElementById('tab-single').classList.toggle('active', m === 'single');
   document.getElementById('tab-compare').classList.toggle('active', m === 'compare');
-  document.getElementById('compare-inputs').classList.toggle('show', m === 'compare');
-  document.getElementById('w1').parentElement.style.display = m === 'single' ? 'flex' : 'none';
-  const btn = document.getElementById('scan-btn');
-  btn.textContent = m === 'single' ? 'Run Scan →' : 'Compare →';
+  // Show/hide single vs compare inputs
+  document.getElementById('single-row').style.display = m === 'single' ? 'block' : 'none';
+  document.getElementById('compare-inputs').style.display = m === 'compare' ? 'flex' : 'none';
+  // Update label
+  document.getElementById('input-label').textContent = m === 'single' ? '// enter solana wallet address' : '// enter two wallets to compare';
+  // Update button text
+  document.getElementById('scan-btn').textContent = m === 'single' ? 'Run Scan →' : 'Compare Wallets →';
 }
 
 // ── HISTORY ──────────────────────────────────
+function getH() {
+  try { return JSON.parse(localStorage.getItem('sr_history') || '[]'); } catch(e) { return []; }
+}
+
 function saveHistory(wallet, score, level) {
-  const h = JSON.parse(localStorage.getItem('sr_history') || '[]');
-  h.unshift({ wallet, score, level, time: Date.now() });
-  localStorage.setItem('sr_history', JSON.stringify(h.slice(0, 8)));
-  renderHistory();
-}
-
-function renderHistory() {
-  const h = JSON.parse(localStorage.getItem('sr_history') || '[]');
-  const list = document.getElementById('history-list');
-  if (!h.length) { list.innerHTML = '<div style="font-family:var(--mono);font-size:11px;color:var(--muted)">No scans yet.</div>'; return; }
-  const colors = { LOW: 'var(--accent)', MEDIUM: 'var(--warn)', HIGH: 'var(--danger)' };
-  list.innerHTML = h.map(item => `
-    <div class="history-item" onclick="loadFromHistory('${item.wallet}')">
-      <div class="h-score" style="color:${colors[item.level]||'var(--muted2)'}">${item.score}</div>
-      <div class="h-wallet">${item.wallet}</div>
-      <div class="h-time">${timeAgo(item.time)}</div>
-    </div>`).join('');
-}
-
-function timeAgo(ts) {
-  const s = Math.floor((Date.now() - ts) / 1000);
-  if (s < 60) return s + 's ago';
-  if (s < 3600) return Math.floor(s/60) + 'm ago';
-  return Math.floor(s/3600) + 'h ago';
+  var h = getH().filter(function(x){ return x.wallet !== wallet; });
+  h.unshift({ wallet: wallet, score: score, level: level });
+  try { localStorage.setItem('sr_history', JSON.stringify(h.slice(0,6))); } catch(e){}
+  renderRecentChips();
 }
 
 function clearHistory() {
-  localStorage.removeItem('sr_history');
-  renderHistory();
+  try { localStorage.removeItem('sr_history'); } catch(e){}
+  renderRecentChips();
 }
 
-function toggleHistory() {
-  const panel = document.getElementById('history-panel');
-  const btn = document.getElementById('history-btn');
-  const show = panel.classList.toggle('show');
-  btn.classList.toggle('active', show);
-  if (show) renderHistory();
+function renderRecentChips() {
+  var row  = document.getElementById('recent-row');
+  var wrap = document.getElementById('recent-chips');
+  if (!row || !wrap) return;
+  var h = getH();
+  if (!h.length) { row.style.display = 'none'; return; }
+  row.style.display = 'block';
+  var clr = { LOW:'#00f0a0', MEDIUM:'#f59e0b', HIGH:'#ff3d3d' };
+  var out = '';
+  for (var i = 0; i < h.length; i++) {
+    var it = h[i];
+    var c  = clr[it.level] || '#6b7a94';
+    var w  = it.wallet.slice(0,4)+'...'+it.wallet.slice(-4);
+    out += '<div onclick="loadRecent(this)" data-wallet="'+it.wallet+'" style="display:flex;align-items:center;gap:6px;cursor:pointer;background:var(--surface);border:1px solid var(--border3);border-radius:8px;padding:5px 10px;transition:border-color 0.2s;font-family:var(--mono);font-size:11px;color:var(--muted2)" onmouseover="this.style.borderColor=this.dataset.h" onmouseout="this.style.borderColor=this.dataset.o" data-h="rgba(0,240,160,0.22)" data-o="rgba(255,255,255,0.06)"><span style="color:'+c+';font-weight:700">'+it.score+'</span><span>'+w+'</span></div>';
+  }
+  wrap.innerHTML = out;
 }
 
-function loadFromHistory(wallet) {
+function loadRecent(el) {
+  var wallet = el.dataset.wallet;
   document.getElementById('w1').value = wallet;
   setMode('single');
   runScan();
 }
+
+function toggleHistory() {}
+function renderHistory() {}
+function loadFromHistory(w) { document.getElementById('w1').value=w; setMode('single'); runScan(); }
+
 
 // ── STEPS ─────────────────────────────────────
 function setStep(n) {
@@ -641,7 +648,7 @@ async function runScan() {
     hide('loading');
     showError(err.message);
   } finally {
-    btn.disabled = false; btn.textContent = 'Run Scan →';
+    btn.disabled = false; btn.textContent = mode === 'compare' ? 'Compare Wallets →' : 'Run Scan →';
   }
 }
 
@@ -967,7 +974,7 @@ document.getElementById('wB').addEventListener('keydown', e => { if (e.key === '
 const urlWallet = new URLSearchParams(window.location.search).get('wallet');
 if (urlWallet) { document.getElementById('w1').value = urlWallet; setTimeout(runScan, 500); }
 
-renderHistory();
+renderRecentChips();
 </script>
 </body>
 </html>

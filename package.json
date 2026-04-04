@@ -1,0 +1,29 @@
+{
+  "name": "solrouter-defi-scanner",
+  "version": "2.0.0",
+  "description": "Private DeFi Portfolio Risk Scanner — encrypted inference via SolRouter on Solana",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "scan": "node index.js"
+  },
+  "keywords": [
+    "solana",
+    "defi",
+    "risk",
+    "solrouter",
+    "encrypted",
+    "inference",
+    "privacy",
+    "web3"
+  ],
+  "author": "OlaTech IT <https://x.com/Olamiayan>",
+  "license": "ISC",
+  "dependencies": {
+    "@solana/web3.js": "^1.98.4",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.0",
+    "express": "^5.2.1",
+    "node-fetch": "^3.3.2"
+  }
+}
