@@ -1,433 +1,973 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>SolRouter — DeFi Risk Scanner</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SolRouter — DeFi Risk Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#04050d;--surface:#080d1a;--card:#0c1220;--card2:#101828;
-  --border:rgba(0,240,160,0.1);--border2:rgba(0,240,160,0.2);--border3:rgba(255,255,255,0.06);
+  --bg:#04050d;--surface:#080d1a;--card:#0c1220;--card2:#0f1628;
+  --border:rgba(0,240,160,0.1);--border2:rgba(0,240,160,0.22);--border3:rgba(255,255,255,0.06);--border4:rgba(255,255,255,0.1);
   --text:#e8edf5;--muted:#4a5568;--muted2:#6b7a94;
-  --accent:#00f0a0;--accent2:#0080ff;--danger:#ff3d3d;--warn:#f59e0b;
+  --accent:#00f0a0;--accent2:#0080ff;--purple:#7c3aed;
+  --danger:#ff3d3d;--warn:#f59e0b;--success:#00f0a0;
   --mono:'Space Mono',monospace;--body:'Outfit',sans-serif;
+  --radius:14px;--radius-lg:20px;--radius-xl:24px;
+}
+[data-theme="light"]{
+  --bg:#f4f6fa;--surface:#ffffff;--card:#ffffff;--card2:#f8fafc;
+  --border:rgba(0,180,120,0.15);--border2:rgba(0,180,120,0.3);--border3:rgba(0,0,0,0.07);--border4:rgba(0,0,0,0.12);
+  --text:#0f1628;--muted:#94a3b8;--muted2:#64748b;
 }
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:100vh;overflow-x:hidden;}
+body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:100vh;overflow-x:hidden;transition:background 0.3s,color 0.3s;}
+
+/* BG */
 .bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+[data-theme="light"] .bg-layer{opacity:0.4;}
 .bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,240,160,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,240,160,0.04) 1px,transparent 1px);background-size:60px 60px;}
-.bg-glow1{position:absolute;top:-20%;left:-10%;width:600px;height:600px;background:radial-gradient(circle,rgba(0,240,160,0.08) 0%,transparent 70%);animation:drift1 20s ease-in-out infinite alternate;}
-.bg-glow2{position:absolute;bottom:-20%;right:-10%;width:700px;height:700px;background:radial-gradient(circle,rgba(0,128,255,0.07) 0%,transparent 70%);animation:drift2 25s ease-in-out infinite alternate;}
-.bg-glow3{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:900px;height:400px;background:radial-gradient(ellipse,rgba(124,58,237,0.05) 0%,transparent 70%);}
+.bg-g1{position:absolute;top:-20%;left:-10%;width:600px;height:600px;background:radial-gradient(circle,rgba(0,240,160,0.08) 0%,transparent 70%);animation:drift1 20s ease-in-out infinite alternate;}
+.bg-g2{position:absolute;bottom:-20%;right:-10%;width:700px;height:700px;background:radial-gradient(circle,rgba(0,128,255,0.07) 0%,transparent 70%);animation:drift2 25s ease-in-out infinite alternate;}
 @keyframes drift1{from{transform:translate(0,0)}to{transform:translate(60px,40px)}}
 @keyframes drift2{from{transform:translate(0,0)}to{transform:translate(-50px,-30px)}}
-.wrap{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:0 24px 100px;}
-nav{display:flex;align-items:center;justify-content:space-between;padding:28px 0;border-bottom:1px solid var(--border3);margin-bottom:80px;}
-.nav-logo{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent);letter-spacing:0.05em;}
-.nav-logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:blink 2s ease infinite;}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
-.nav-tag{font-family:var(--mono);font-size:10px;color:var(--muted2);border:1px solid var(--border3);border-radius:100px;padding:5px 12px;letter-spacing:0.06em;}
-.hero{text-align:center;margin-bottom:72px;animation:fadeUp 0.7s ease both;}
-.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(0,240,160,0.06);border:1px solid var(--border2);border-radius:100px;padding:8px 20px;font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:32px;}
-.pulse-ring{width:8px;height:8px;border-radius:50%;background:var(--accent);position:relative;}
-.pulse-ring::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:1px solid var(--accent);animation:ring 2s ease infinite;}
+
+/* LAYOUT */
+.wrap{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:0 24px 100px;}
+
+/* NAV */
+nav{display:flex;align-items:center;justify-content:space-between;padding:24px 0;border-bottom:1px solid var(--border3);margin-bottom:60px;gap:12px;flex-wrap:wrap;}
+.nav-left{display:flex;align-items:center;gap:10px;}
+.nav-logo{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent);letter-spacing:0.05em;}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:blink 2s ease infinite;flex-shrink:0;}
+.nav-right{display:flex;align-items:center;gap:8px;}
+.nav-btn{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;background:var(--card);border:1px solid var(--border3);border-radius:100px;padding:7px 14px;color:var(--muted2);cursor:pointer;transition:all 0.2s;letter-spacing:0.04em;}
+.nav-btn:hover{border-color:var(--border2);color:var(--accent);}
+.nav-btn.active{background:rgba(0,240,160,0.08);border-color:var(--border2);color:var(--accent);}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.35}}
+
+/* HERO */
+.hero{text-align:center;margin-bottom:52px;animation:fadeUp 0.7s ease both;}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(0,240,160,0.06);border:1px solid var(--border2);border-radius:100px;padding:7px 18px;font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:28px;}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--accent);position:relative;}
+.pulse::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:1px solid var(--accent);animation:ring 2s ease infinite;}
 @keyframes ring{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(2.5)}}
-h1{font-size:clamp(40px,7vw,72px);font-weight:900;line-height:1.0;letter-spacing:-0.03em;margin-bottom:24px;}
-h1 .line1{color:var(--text);}
-h1 .line2{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.hero-sub{font-size:17px;color:var(--muted2);font-weight:400;line-height:1.7;max-width:520px;margin:0 auto 48px;}
-.stat-strip{display:flex;align-items:center;justify-content:center;border:1px solid var(--border3);border-radius:16px;overflow:hidden;margin-bottom:72px;animation:fadeUp 0.7s 0.1s ease both;}
-.strip-item{flex:1;padding:20px 24px;text-align:center;border-right:1px solid var(--border3);}
+h1{font-size:clamp(36px,6vw,64px);font-weight:900;line-height:1.0;letter-spacing:-0.03em;margin-bottom:20px;}
+.g{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{font-size:16px;color:var(--muted2);line-height:1.7;max-width:500px;margin:0 auto 36px;}
+
+/* STAT STRIP */
+.strip{display:flex;border:1px solid var(--border3);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:52px;animation:fadeUp 0.7s 0.08s ease both;}
+.strip-item{flex:1;padding:18px 20px;text-align:center;border-right:1px solid var(--border3);}
 .strip-item:last-child{border-right:none;}
-.strip-num{font-size:20px;font-weight:700;color:var(--accent);font-family:var(--mono);margin-bottom:4px;}
-.strip-label{font-size:10px;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase;font-family:var(--mono);}
-.scanner{background:var(--card);border:1px solid var(--border2);border-radius:24px;overflow:hidden;margin-bottom:32px;animation:fadeUp 0.7s 0.15s ease both;position:relative;}
+.strip-num{font-size:18px;font-weight:700;color:var(--accent);font-family:var(--mono);margin-bottom:3px;}
+.strip-lbl{font-size:10px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;font-family:var(--mono);}
+
+/* MODE TABS */
+.mode-tabs{display:flex;gap:8px;margin-bottom:20px;animation:fadeUp 0.7s 0.12s ease both;}
+.mode-tab{flex:1;padding:12px;border:1px solid var(--border3);border-radius:var(--radius);font-family:var(--mono);font-size:12px;color:var(--muted2);cursor:pointer;text-align:center;transition:all 0.2s;background:var(--card);}
+.mode-tab.active{border-color:var(--border2);color:var(--accent);background:rgba(0,240,160,0.06);}
+.mode-tab:hover:not(.active){border-color:var(--border4);color:var(--text);}
+
+/* SCANNER CARD */
+.scanner{background:var(--card);border:1px solid var(--border2);border-radius:var(--radius-xl);overflow:hidden;margin-bottom:24px;animation:fadeUp 0.7s 0.15s ease both;position:relative;}
 .scanner::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);}
-.scanner-header{display:flex;align-items:center;gap:8px;padding:16px 24px;border-bottom:1px solid var(--border3);background:var(--surface);}
-.dot-r{width:12px;height:12px;border-radius:50%;background:#ff5f57;}
-.dot-y{width:12px;height:12px;border-radius:50%;background:#febc2e;}
-.dot-g{width:12px;height:12px;border-radius:50%;background:#28c840;}
-.scanner-title{font-family:var(--mono);font-size:12px;color:var(--muted2);margin-left:8px;letter-spacing:0.04em;}
-.scanner-body{padding:32px;}
-.input-label{font-family:var(--mono);font-size:10px;color:var(--muted2);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px;display:block;}
-.input-wrap{display:flex;gap:12px;align-items:stretch;margin-bottom:16px;}
-.wallet-input{flex:1;background:var(--surface);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:16px 20px;font-family:var(--mono);font-size:13px;color:var(--text);outline:none;transition:border-color 0.2s,box-shadow 0.2s;letter-spacing:0.02em;}
+.scanner-header{display:flex;align-items:center;gap:7px;padding:14px 22px;border-bottom:1px solid var(--border3);background:var(--surface);}
+.dot-r{width:11px;height:11px;border-radius:50%;background:#ff5f57;flex-shrink:0;}
+.dot-y{width:11px;height:11px;border-radius:50%;background:#febc2e;flex-shrink:0;}
+.dot-g{width:11px;height:11px;border-radius:50%;background:#28c840;flex-shrink:0;}
+.scanner-title{font-family:var(--mono);font-size:11px;color:var(--muted2);margin-left:8px;}
+.scanner-body{padding:28px;}
+.input-label{font-family:var(--mono);font-size:10px;color:var(--muted2);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;display:block;}
+.input-row{display:flex;gap:10px;margin-bottom:14px;}
+.wallet-input{flex:1;background:var(--surface);border:1px solid var(--border4);border-radius:var(--radius);padding:14px 18px;font-family:var(--mono);font-size:13px;color:var(--text);outline:none;transition:border-color 0.2s,box-shadow 0.2s;min-width:0;}
 .wallet-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,240,160,0.08);}
 .wallet-input::placeholder{color:var(--muted);}
-.scan-btn{background:var(--accent);color:#000;border:none;border-radius:14px;padding:16px 32px;font-family:var(--body);font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.2s;letter-spacing:0.02em;position:relative;overflow:hidden;}
-.scan-btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,240,160,0.3);}
+.scan-btn{background:var(--accent);color:#000;border:none;border-radius:var(--radius);padding:14px 28px;font-family:var(--body);font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.2s;flex-shrink:0;}
+.scan-btn:hover{opacity:0.88;transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,240,160,0.3);}
 .scan-btn:active{transform:scale(0.97);}
 .scan-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none;}
-.hint-row{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--muted);}
-.hint-chip{background:rgba(0,240,160,0.06);border:1px solid var(--border);border-radius:6px;padding:3px 8px;color:var(--accent);font-size:10px;}
-.loading{display:none;background:var(--card);border:1px solid var(--border2);border-radius:24px;padding:60px 32px;text-align:center;margin-bottom:32px;animation:fadeUp 0.3s ease both;}
-.loading.active{display:block;}
-.scan-anim{width:80px;height:80px;margin:0 auto 28px;position:relative;}
-.scan-ring{width:80px;height:80px;border-radius:50%;border:2px solid rgba(0,240,160,0.1);border-top-color:var(--accent);position:absolute;inset:0;animation:spin 1s linear infinite;}
-.scan-ring2{width:56px;height:56px;border-radius:50%;border:2px solid rgba(0,128,255,0.1);border-bottom-color:var(--accent2);position:absolute;top:12px;left:12px;animation:spin 1.5s linear infinite reverse;}
-.scan-dot2{width:10px;height:10px;border-radius:50%;background:var(--accent);position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 0 12px var(--accent);animation:blink 1s ease infinite;}
+.hint-row{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--muted);flex-wrap:wrap;}
+.chip{background:rgba(0,240,160,0.06);border:1px solid var(--border);border-radius:6px;padding:2px 8px;color:var(--accent);font-size:10px;white-space:nowrap;}
+
+/* COMPARE MODE */
+.compare-inputs{display:none;gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border3);}
+.compare-inputs.show{display:flex;}
+.compare-label{font-family:var(--mono);font-size:10px;color:var(--muted2);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;}
+.compare-col{flex:1;min-width:0;}
+
+/* LOADING */
+.loading{display:none;background:var(--card);border:1px solid var(--border2);border-radius:var(--radius-xl);padding:52px 28px;text-align:center;margin-bottom:24px;}
+.loading.show{display:block;}
+.spin-wrap{width:76px;height:76px;margin:0 auto 24px;position:relative;}
+.sr1{width:76px;height:76px;border-radius:50%;border:2px solid rgba(0,240,160,0.1);border-top-color:var(--accent);position:absolute;inset:0;animation:spin 0.9s linear infinite;}
+.sr2{width:52px;height:52px;border-radius:50%;border:2px solid rgba(0,128,255,0.1);border-bottom-color:var(--accent2);position:absolute;top:12px;left:12px;animation:spin 1.4s linear infinite reverse;}
+.sdot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);animation:blink 1s ease infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
-.loading-title{font-size:18px;font-weight:600;margin-bottom:10px;}
-.loading-steps{display:flex;flex-direction:column;gap:8px;margin-top:28px;text-align:left;max-width:320px;margin-left:auto;margin-right:auto;}
-.step{display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:11px;color:var(--muted);padding:8px 12px;border-radius:8px;background:var(--surface);transition:all 0.3s;border:1px solid transparent;}
-.step.active{color:var(--text);background:rgba(0,240,160,0.06);border-color:var(--border);}
+.loading-title{font-size:17px;font-weight:600;margin-bottom:20px;}
+.steps{display:flex;flex-direction:column;gap:7px;max-width:300px;margin:0 auto;}
+.step{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;color:var(--muted);padding:8px 12px;border-radius:8px;background:var(--surface);border:1px solid transparent;transition:all 0.3s;}
+.step.on{color:var(--text);background:rgba(0,240,160,0.05);border-color:var(--border);}
 .step.done{color:var(--accent);}
-.step-icon{width:16px;text-align:center;flex-shrink:0;}
-.error-box{display:none;background:rgba(255,61,61,0.06);border:1px solid rgba(255,61,61,0.2);border-radius:16px;padding:20px 24px;font-family:var(--mono);font-size:13px;color:#ff9999;margin-bottom:24px;animation:fadeUp 0.3s ease both;}
-.error-box.active{display:block;}
-.results{display:none;animation:fadeUp 0.5s ease both;}
-.results.active{display:block;}
-.demo-note{display:none;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);border-radius:12px;padding:12px 16px;font-family:var(--mono);font-size:11px;color:var(--warn);margin-bottom:16px;}
-.risk-hero{border-radius:24px;padding:40px;margin-bottom:20px;position:relative;overflow:hidden;}
-.risk-hero.LOW{background:rgba(0,240,160,0.06);border:1px solid rgba(0,240,160,0.2);}
-.risk-hero.MEDIUM{background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);}
-.risk-hero.HIGH{background:rgba(255,61,61,0.06);border:1px solid rgba(255,61,61,0.2);}
-.risk-inner{display:flex;align-items:center;justify-content:space-between;gap:32px;}
-.risk-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;}
-.risk-score{font-size:72px;font-weight:900;letter-spacing:-0.04em;line-height:1;margin-bottom:8px;}
-.LOW .risk-score{color:var(--accent);}
-.MEDIUM .risk-score{color:var(--warn);}
-.HIGH .risk-score{color:var(--danger);}
-.risk-label-sm{font-size:14px;color:var(--muted2);}
-.risk-right{flex:1;max-width:380px;}
-.risk-summary-text{font-size:15px;line-height:1.7;color:var(--text);}
-.gauge-wrap{margin-top:20px;}
-.gauge-bar{height:6px;border-radius:100px;background:rgba(255,255,255,0.06);overflow:hidden;margin-bottom:6px;}
-.gauge-fill{height:100%;border-radius:100px;transition:width 1.2s cubic-bezier(0.4,0,0.2,1);}
-.LOW .gauge-fill{background:var(--accent);width:20%;}
-.MEDIUM .gauge-fill{background:var(--warn);width:58%;}
-.HIGH .gauge-fill{background:var(--danger);width:92%;}
-.gauge-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--muted);}
-.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
-.stat-box{background:var(--card);border:1px solid var(--border3);border-radius:16px;padding:20px;transition:border-color 0.2s;position:relative;overflow:hidden;}
+.si{width:14px;text-align:center;flex-shrink:0;}
+
+/* ERROR */
+.err-box{display:none;background:rgba(255,61,61,0.06);border:1px solid rgba(255,61,61,0.2);border-radius:var(--radius-lg);padding:18px 22px;font-family:var(--mono);font-size:13px;color:#ff9999;margin-bottom:20px;}
+.err-box.show{display:block;}
+
+/* RESULTS */
+.results{display:none;}
+.results.show{display:block;}
+
+/* COMPARE RESULTS */
+.compare-results{display:none;}
+.compare-results.show{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+
+/* DEMO NOTE */
+.demo-note{display:none;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:10px 16px;font-family:var(--mono);font-size:11px;color:var(--warn);margin-bottom:16px;}
+
+/* SCORE CARD — top of results */
+.score-card{background:var(--card);border:1px solid var(--border2);border-radius:var(--radius-xl);padding:36px;margin-bottom:16px;display:grid;grid-template-columns:auto 1fr auto;gap:40px;align-items:center;position:relative;overflow:hidden;}
+.score-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);}
+
+/* Circular gauge */
+.gauge-wrap{position:relative;width:140px;height:140px;flex-shrink:0;}
+.gauge-svg{transform:rotate(-90deg);}
+.gauge-bg{fill:none;stroke:rgba(255,255,255,0.06);stroke-width:10;}
+.gauge-fill{fill:none;stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1),stroke 0.5s;}
+.gauge-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+.gauge-num{font-size:32px;font-weight:900;font-family:var(--mono);line-height:1;}
+.gauge-lbl{font-size:10px;color:var(--muted2);letter-spacing:0.06em;text-transform:uppercase;font-family:var(--mono);}
+
+/* Score middle */
+.score-mid{}
+.score-level-badge{display:inline-flex;align-items:center;gap:6px;border-radius:100px;padding:5px 14px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.08em;margin-bottom:12px;}
+.score-level-badge.LOW{background:rgba(0,240,160,0.1);color:var(--accent);border:1px solid rgba(0,240,160,0.25);}
+.score-level-badge.MEDIUM{background:rgba(245,158,11,0.1);color:var(--warn);border:1px solid rgba(245,158,11,0.25);}
+.score-level-badge.HIGH{background:rgba(255,61,61,0.1);color:var(--danger);border:1px solid rgba(255,61,61,0.25);}
+.score-summary{font-size:15px;line-height:1.65;color:var(--text);margin-bottom:16px;}
+.score-wallet{font-family:var(--mono);font-size:12px;color:var(--muted2);display:flex;align-items:center;gap:8px;}
+.copy-btn{background:none;border:1px solid var(--border3);border-radius:6px;padding:2px 8px;font-family:var(--mono);font-size:10px;color:var(--muted2);cursor:pointer;transition:all 0.2s;}
+.copy-btn:hover{border-color:var(--border2);color:var(--accent);}
+
+/* Radar chart */
+.radar-wrap{width:160px;height:160px;flex-shrink:0;}
+.radar-svg{overflow:visible;}
+
+/* STAT ROW */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+.stat-box{background:var(--card);border:1px solid var(--border3);border-radius:var(--radius);padding:18px;transition:border-color 0.2s;cursor:default;}
 .stat-box:hover{border-color:var(--border2);}
-.stat-box::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,240,160,0.4),transparent);opacity:0;transition:opacity 0.3s;}
-.stat-box:hover::after{opacity:1;}
-.stat-tag{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;}
-.stat-val{font-size:22px;font-weight:700;color:var(--text);letter-spacing:-0.02em;font-family:var(--mono);}
+.stat-tag{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;}
+.stat-val{font-size:20px;font-weight:700;color:var(--text);font-family:var(--mono);letter-spacing:-0.02em;}
 .stat-val.ac{color:var(--accent);}
-.stat-sub{font-size:11px;color:var(--muted);margin-top:4px;}
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
-.panel{background:var(--card);border:1px solid var(--border3);border-radius:20px;padding:24px;}
-.panel-head{display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border3);}
-.panel-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;}
-.panel-icon.w{background:rgba(245,158,11,0.1);}
-.panel-icon.g{background:rgba(0,240,160,0.1);}
+.stat-val.warn{color:var(--warn);}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:3px;}
+
+/* RESULT TABS */
+.result-tabs{display:flex;gap:0;border-bottom:1px solid var(--border3);margin-bottom:20px;}
+.rtab{padding:10px 20px;font-family:var(--mono);font-size:12px;color:var(--muted2);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;letter-spacing:0.04em;}
+.rtab.on{color:var(--accent);border-bottom-color:var(--accent);}
+.rtab:hover:not(.on){color:var(--text);}
+.rpanel{display:none;}
+.rpanel.on{display:block;}
+
+/* FLAGS & RECS */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+.panel{background:var(--card);border:1px solid var(--border3);border-radius:var(--radius-lg);padding:22px;}
+.panel-head{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border3);}
+.picon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.picon.w{background:rgba(245,158,11,0.1);}
+.picon.g{background:rgba(0,240,160,0.1);}
 .panel-title{font-size:13px;font-weight:600;}
-.panel-count{margin-left:auto;font-family:var(--mono);font-size:10px;background:var(--surface);border:1px solid var(--border3);border-radius:100px;padding:3px 10px;color:var(--muted2);}
-.item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border3);}
-.item:last-child{border-bottom:none;padding-bottom:0;}
-.item-bul{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:6px;}
-.item-bul.w{background:var(--warn);}
-.item-bul.g{background:var(--accent);}
-.item-text{font-size:13px;color:var(--muted2);line-height:1.5;}
-.token-panel{background:var(--card);border:1px solid var(--border3);border-radius:20px;padding:24px;margin-bottom:20px;}
-.token-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border3);}
-.token-row:last-child{border-bottom:none;}
-.token-mint{font-family:var(--mono);font-size:11px;color:var(--muted2);word-break:break-all;flex:1;margin-right:16px;}
-.token-bal{font-family:var(--mono);font-size:12px;color:var(--accent);white-space:nowrap;background:rgba(0,240,160,0.06);border:1px solid var(--border);border-radius:6px;padding:3px 8px;}
-.privacy-bar{display:flex;align-items:flex-start;gap:16px;background:rgba(0,128,255,0.04);border:1px solid rgba(0,128,255,0.12);border-radius:16px;padding:20px 24px;margin-bottom:20px;}
-.privacy-icon{width:36px;height:36px;border-radius:10px;background:rgba(0,128,255,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--accent2);}
-.privacy-title{font-size:13px;font-weight:600;margin-bottom:4px;}
+.pcnt{margin-left:auto;font-family:var(--mono);font-size:10px;background:var(--surface);border:1px solid var(--border3);border-radius:100px;padding:2px 9px;color:var(--muted2);}
+.pitem{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border3);}
+.pitem:last-child{border-bottom:none;padding-bottom:0;}
+.pbul{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+.pbul.w{background:var(--warn);}
+.pbul.g{background:var(--accent);}
+.ptext{font-size:13px;color:var(--muted2);line-height:1.5;}
+
+/* DIMENSIONS BAR */
+.dims{background:var(--card);border:1px solid var(--border3);border-radius:var(--radius-lg);padding:22px;margin-bottom:14px;}
+.dim-row{display:flex;align-items:center;gap:14px;margin-bottom:12px;}
+.dim-row:last-child{margin-bottom:0;}
+.dim-name{font-family:var(--mono);font-size:11px;color:var(--muted2);width:100px;flex-shrink:0;}
+.dim-bar{flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:100px;overflow:hidden;}
+.dim-fill{height:100%;border-radius:100px;transition:width 1s cubic-bezier(0.4,0,0.2,1);}
+.dim-score{font-family:var(--mono);font-size:11px;color:var(--muted2);width:28px;text-align:right;flex-shrink:0;}
+
+/* TOKEN TABLE */
+.tbl-wrap{background:var(--card);border:1px solid var(--border3);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:14px;}
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;padding:12px 16px;text-align:left;border-bottom:1px solid var(--border3);background:var(--surface);}
+.tbl td{padding:12px 16px;font-size:13px;border-bottom:1px solid var(--border3);color:var(--text);}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:rgba(255,255,255,0.02);}
+.mint-cell{font-family:var(--mono);font-size:11px;color:var(--muted2);}
+.bal-cell{font-family:var(--mono);font-size:12px;}
+.usd-cell{font-family:var(--mono);font-size:12px;color:var(--accent);}
+.dust-badge{background:rgba(245,158,11,0.1);color:var(--warn);border:1px solid rgba(245,158,11,0.2);border-radius:4px;padding:1px 6px;font-size:10px;font-family:var(--mono);margin-left:6px;}
+
+/* TX TIMELINE */
+.tx-list{background:var(--card);border:1px solid var(--border3);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:14px;}
+.tx-item{display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid var(--border3);transition:background 0.15s;}
+.tx-item:last-child{border-bottom:none;}
+.tx-item:hover{background:rgba(255,255,255,0.02);}
+.tx-status{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.tx-status.ok{background:var(--accent);}
+.tx-status.fail{background:var(--danger);}
+.tx-sig{font-family:var(--mono);font-size:12px;color:var(--accent);cursor:pointer;text-decoration:none;}
+.tx-sig:hover{text-decoration:underline;}
+.tx-time{font-family:var(--mono);font-size:11px;color:var(--muted2);margin-left:auto;white-space:nowrap;}
+.tx-badge{font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:4px;}
+.tx-badge.ok{background:rgba(0,240,160,0.08);color:var(--accent);}
+.tx-badge.fail{background:rgba(255,61,61,0.08);color:var(--danger);}
+.tx-empty{padding:32px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);}
+
+/* PROTOCOLS */
+.proto-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:14px;}
+.proto-card{background:var(--card);border:1px solid var(--border3);border-radius:var(--radius);padding:16px;transition:border-color 0.2s;}
+.proto-card:hover{border-color:var(--border2);}
+.proto-icon{font-size:22px;margin-bottom:8px;}
+.proto-name{font-size:14px;font-weight:600;margin-bottom:3px;}
+.proto-type{font-family:var(--mono);font-size:11px;color:var(--muted2);margin-bottom:8px;}
+.proto-risk{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:100px;}
+.proto-risk.Low{background:rgba(0,240,160,0.08);color:var(--accent);}
+.proto-risk.Medium{background:rgba(245,158,11,0.08);color:var(--warn);}
+.proto-risk.High{background:rgba(255,61,61,0.08);color:var(--danger);}
+.no-proto{padding:32px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);background:var(--card);border:1px solid var(--border3);border-radius:var(--radius-lg);}
+
+/* PRIVACY BAR */
+.privacy-bar{display:flex;align-items:flex-start;gap:14px;background:rgba(0,128,255,0.04);border:1px solid rgba(0,128,255,0.12);border-radius:var(--radius);padding:18px 22px;margin-bottom:14px;}
+.plock{width:34px;height:34px;border-radius:8px;background:rgba(0,128,255,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--accent2);}
+.privacy-title{font-size:13px;font-weight:600;margin-bottom:3px;}
 .privacy-text{font-size:12px;color:var(--muted2);line-height:1.6;font-family:var(--mono);}
-.page-footer{text-align:center;margin-top:80px;padding-top:32px;border-top:1px solid var(--border3);font-family:var(--mono);font-size:11px;color:var(--muted);animation:fadeUp 0.7s 0.3s ease both;}
-.page-footer a{color:var(--accent);text-decoration:none;}
-.footer-row{margin-bottom:16px;}
+
+/* ACTION BAR */
+.action-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+.action-btn{display:flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--border3);border-radius:var(--radius);padding:10px 18px;font-family:var(--mono);font-size:12px;color:var(--muted2);cursor:pointer;transition:all 0.2s;}
+.action-btn:hover{border-color:var(--border2);color:var(--accent);}
+.action-btn.primary{background:rgba(0,240,160,0.08);border-color:var(--border2);color:var(--accent);}
+
+/* HISTORY PANEL */
+.history-panel{background:var(--card);border:1px solid var(--border3);border-radius:var(--radius-lg);padding:20px;margin-bottom:20px;display:none;}
+.history-panel.show{display:block;}
+.history-title{font-family:var(--mono);font-size:11px;color:var(--muted2);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:14px;}
+.history-list{display:flex;flex-direction:column;gap:8px;}
+.history-item{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--surface);border:1px solid var(--border3);border-radius:var(--radius);cursor:pointer;transition:all 0.2s;}
+.history-item:hover{border-color:var(--border2);}
+.h-score{font-family:var(--mono);font-size:13px;font-weight:700;}
+.h-wallet{font-family:var(--mono);font-size:11px;color:var(--muted2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.h-time{font-family:var(--mono);font-size:10px;color:var(--muted);white-space:nowrap;}
+.h-clear{font-family:var(--mono);font-size:10px;color:var(--muted);cursor:pointer;float:right;margin-top:-2px;}
+.h-clear:hover{color:var(--danger);}
+
+/* FOOTER */
+.footer{text-align:center;margin-top:72px;padding-top:28px;border-top:1px solid var(--border3);animation:fadeUp 0.7s 0.3s ease both;}
+.footer-built{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:14px;}
+.footer-built a{color:var(--accent);text-decoration:none;}
 .footer-socials{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;}
-.social-chip{display:inline-flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--border3);border-radius:100px;padding:6px 14px;font-family:var(--mono);font-size:10px;color:var(--muted2);text-decoration:none;transition:all 0.2s;letter-spacing:0.04em;}
+.social-chip{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border3);border-radius:100px;padding:6px 14px;font-family:var(--mono);font-size:10px;color:var(--muted2);text-decoration:none;transition:all 0.2s;letter-spacing:0.04em;}
 .social-chip:hover{border-color:var(--border2);color:var(--accent);background:rgba(0,240,160,0.05);}
-@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-/* ── Tablet (768px) ── */
-@media(max-width:768px){
-  .wrap{padding:0 20px 80px;}
-  h1{font-size:clamp(34px,6vw,52px);}
-  .hero{margin-bottom:48px;}
-  .stat-strip{margin-bottom:48px;}
-  .hero-sub{font-size:15px;}
+
+/* COMPARE CARD */
+.compare-card{background:var(--card);border:1px solid var(--border3);border-radius:var(--radius-xl);padding:20px;}
+.compare-card-header{display:flex;align-items:center;gap:8px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border3);}
+.compare-tag{font-family:var(--mono);font-size:11px;background:var(--surface);border:1px solid var(--border3);border-radius:6px;padding:3px 10px;color:var(--muted2);}
+.mini-gauge{text-align:center;margin-bottom:16px;}
+.mini-score{font-size:42px;font-weight:900;font-family:var(--mono);}
+.mini-level{font-family:var(--mono);font-size:11px;letter-spacing:0.08em;margin-top:4px;}
+.mini-stat{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;padding:6px 0;border-bottom:1px solid var(--border3);color:var(--muted2);}
+.mini-stat:last-child{border-bottom:none;}
+.mini-stat span:last-child{color:var(--text);}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes countUp{from{opacity:0}to{opacity:1}}
+
+/* RESPONSIVE */
+@media(max-width:860px){
+  .score-card{grid-template-columns:1fr;gap:20px;text-align:center;}
+  .gauge-wrap{margin:0 auto;}
+  .radar-wrap{margin:0 auto;}
+  .score-wallet{justify-content:center;}
+  .stat-row{grid-template-columns:1fr 1fr;}
+  .compare-results.show{grid-template-columns:1fr;}
 }
-/* ── Large phones (640px) ── */
 @media(max-width:640px){
-  nav{padding:20px 0;margin-bottom:48px;}
-  .nav-logo{font-size:11px;}
-  .two-col{grid-template-columns:1fr;}
-  .stats-row{grid-template-columns:1fr 1fr;}
-  .stat-strip{flex-wrap:wrap;}
+  nav{margin-bottom:40px;}
+  h1{font-size:34px;}
+  .strip{flex-wrap:wrap;}
   .strip-item{min-width:50%;border-bottom:1px solid var(--border3);}
   .strip-item:nth-child(odd){border-right:1px solid var(--border3);}
   .strip-item:nth-child(even){border-right:none;}
-  .strip-item:last-child,.strip-item:nth-last-child(2){border-bottom:none;}
-  .risk-inner{flex-direction:column;gap:20px;}
-  .risk-right{max-width:100%;}
-  .input-wrap{flex-direction:column;}
-  .scan-btn{width:100%;padding:16px;}
-  h1{font-size:36px;}
-  .risk-score{font-size:52px;}
-  .risk-hero{padding:28px 20px;}
-  .scanner-body{padding:20px;}
-  .panel{padding:18px;}
-  .hero-eyebrow{font-size:10px;padding:6px 14px;}
-  .stat-box{padding:16px;}
-  .stat-val{font-size:18px;}
+  .two-col{grid-template-columns:1fr;}
+  .input-row{flex-direction:column;}
+  .compare-inputs.show{flex-direction:column;}
+  .result-tabs{overflow-x:auto;}
+  .rtab{white-space:nowrap;}
+  .proto-grid{grid-template-columns:1fr 1fr;}
+  .action-bar{gap:8px;}
+  .action-btn{font-size:11px;padding:8px 12px;}
+  .score-card{padding:22px 18px;}
 }
-/* ── Small phones (480px) ── */
 @media(max-width:480px){
   .wrap{padding:0 16px 60px;}
-  nav{margin-bottom:36px;}
-  .nav-tag{display:none;}
-  h1{font-size:30px;letter-spacing:-0.02em;}
-  .hero-sub{font-size:14px;}
-  .hero{margin-bottom:36px;}
-  .stat-strip{margin-bottom:36px;}
+  h1{font-size:28px;}
+  .stat-row{grid-template-columns:1fr;}
+  .eyebrow{display:none;}
   .strip-item{padding:14px 12px;}
-  .strip-num{font-size:16px;}
-  .strip-label{font-size:9px;}
-  .stats-row{grid-template-columns:1fr;}
-  .scanner-header{padding:12px 16px;}
-  .scanner-title{display:none;}
-  .risk-score{font-size:44px;}
-  .loading-steps{max-width:100%;}
-  .token-mint{font-size:10px;}
-  .privacy-bar{flex-direction:column;gap:12px;}
-  .privacy-icon{width:28px;height:28px;}
-}
-/* ── Extra small (375px) ── */
-@media(max-width:375px){
-  h1{font-size:26px;}
-  .scan-btn{font-size:13px;padding:14px;}
-  .wallet-input{font-size:12px;padding:14px 14px;}
-  .risk-score{font-size:38px;}
-  .hero-eyebrow{display:none;}
-  .stat-strip{display:grid;grid-template-columns:1fr 1fr;}
-  .strip-item{border-right:none!important;border-bottom:1px solid var(--border3)!important;}
-  .strip-item:nth-child(odd){border-right:1px solid var(--border3)!important;}
-  .strip-item:last-child,.strip-item:nth-last-child(2):nth-child(odd){border-bottom:none!important;}
+  .nav-right{gap:6px;}
+  .nav-btn{padding:5px 10px;font-size:10px;}
+  .proto-grid{grid-template-columns:1fr;}
+  .mode-tabs{flex-direction:column;}
 }
 </style>
 </head>
 <body>
-<div class="bg-layer">
-  <div class="bg-grid"></div>
-  <div class="bg-glow1"></div>
-  <div class="bg-glow2"></div>
-  <div class="bg-glow3"></div>
-</div>
+<div class="bg-layer"><div class="bg-grid"></div><div class="bg-g1"></div><div class="bg-g2"></div></div>
 
 <div class="wrap">
-  <nav>
-    <div class="nav-logo"><div class="nav-logo-dot"></div>SOLROUTER · RISK SCANNER</div>
-    <div class="nav-tag">SOLANA DEVNET</div>
-  </nav>
+<nav>
+  <div class="nav-left">
+    <div class="live-dot"></div>
+    <div class="nav-logo">SOLROUTER · RISK INTELLIGENCE</div>
+  </div>
+  <div class="nav-right">
+    <button class="nav-btn" id="history-btn" onclick="toggleHistory()">⏱ History</button>
+    <button class="nav-btn" id="theme-btn" onclick="toggleTheme()">☀ Light</button>
+  </div>
+</nav>
 
-  <section class="hero">
-    <div class="hero-eyebrow"><div class="pulse-ring"></div>Encrypted Inference · Powered by SolRouter</div>
-    <h1><div class="line1">DeFi Portfolio</div><div class="line2">Risk Intelligence</div></h1>
-    <p class="hero-sub">Scan any Solana wallet for DeFi risk. Your query is encrypted before it leaves your device — processed in isolated hardware on Nosana's decentralized GPU network.</p>
-  </section>
+<section class="hero">
+  <div class="eyebrow"><div class="pulse"></div>Encrypted Inference · SolRouter + Nosana Network</div>
+  <h1>DeFi Portfolio<br/><span class="g">Risk Intelligence</span></h1>
+  <p class="hero-sub">The first encrypted DeFi risk scanner on Solana. Your query never leaves your device unencrypted — processed in isolated hardware, zero data logged.</p>
+</section>
 
-  <div class="stat-strip">
-    <div class="strip-item"><div class="strip-num">256-bit</div><div class="strip-label">Encryption</div></div>
-    <div class="strip-item"><div class="strip-num">TEE</div><div class="strip-label">Isolation</div></div>
-    <div class="strip-item"><div class="strip-num">0</div><div class="strip-label">Data Logged</div></div>
-    <div class="strip-item"><div class="strip-num">On-chain</div><div class="strip-label">Verifiable</div></div>
+<div class="strip">
+  <div class="strip-item"><div class="strip-num">256-bit</div><div class="strip-lbl">Encryption</div></div>
+  <div class="strip-item"><div class="strip-num">TEE</div><div class="strip-lbl">Hardware Isolation</div></div>
+  <div class="strip-item"><div class="strip-num">5</div><div class="strip-lbl">Risk Dimensions</div></div>
+  <div class="strip-item"><div class="strip-num">0</div><div class="strip-lbl">Data Logged</div></div>
+</div>
+
+<div class="mode-tabs">
+  <div class="mode-tab active" id="tab-single" onclick="setMode('single')">Single Wallet Scan</div>
+  <div class="mode-tab" id="tab-compare" onclick="setMode('compare')">Compare Two Wallets</div>
+</div>
+
+<div class="scanner">
+  <div class="scanner-header"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div><span class="scanner-title">risk-scanner.js — SolRouter Agent v2.0 · Solana Devnet</span></div>
+  <div class="scanner-body">
+    <label class="input-label" for="w1">// enter solana wallet address</label>
+    <div class="input-row">
+      <input id="w1" class="wallet-input" type="text" placeholder="e.g. 7iM3vNN15rTa9b2B1Rg1UCZUEwSA1eRswja6a4gjFjb9" spellcheck="false" autocomplete="off"/>
+      <button class="scan-btn" id="scan-btn" onclick="runScan()">Run Scan →</button>
+    </div>
+    <div class="compare-inputs" id="compare-inputs">
+      <div class="compare-col">
+        <div class="compare-label">// Wallet A</div>
+        <input id="wA" class="wallet-input" type="text" placeholder="First wallet address" spellcheck="false" autocomplete="off"/>
+      </div>
+      <div class="compare-col">
+        <div class="compare-label">// Wallet B</div>
+        <input id="wB" class="wallet-input" type="text" placeholder="Second wallet address" spellcheck="false" autocomplete="off"/>
+      </div>
+    </div>
+    <div class="hint-row">
+      <span class="chip">DEVNET</span>
+      <span class="chip">ENCRYPTED</span>
+      All queries encrypted end-to-end · Powered by SolRouter + Nosana
+    </div>
+  </div>
+</div>
+
+<div class="err-box" id="err-box"></div>
+
+<div class="loading" id="loading">
+  <div class="spin-wrap"><div class="sr1"></div><div class="sr2"></div><div class="sdot"></div></div>
+  <div class="loading-title">Scanning Wallet</div>
+  <div class="steps">
+    <div class="step" id="s1"><span class="si">◉</span> Connecting to Solana Devnet</div>
+    <div class="step" id="s2"><span class="si">◎</span> Fetching on-chain positions</div>
+    <div class="step" id="s3"><span class="si">◎</span> Fetching transaction history</div>
+    <div class="step" id="s4"><span class="si">◎</span> Enriching with token prices</div>
+    <div class="step" id="s5"><span class="si">◎</span> SolRouter encrypted inference</div>
+    <div class="step" id="s6"><span class="si">◎</span> Generating risk intelligence</div>
+  </div>
+</div>
+
+<div class="history-panel" id="history-panel">
+  <div class="history-title">Recent Scans <span class="h-clear" onclick="clearHistory()">Clear all</span></div>
+  <div class="history-list" id="history-list"></div>
+</div>
+
+<!-- SINGLE RESULTS -->
+<div class="results" id="results">
+  <div class="demo-note" id="demo-note">⚠ SolRouter nodes warming up — showing on-device encrypted analysis. Live inference activates automatically when nodes are available.</div>
+
+  <div class="score-card" id="score-card">
+    <div class="gauge-wrap">
+      <svg class="gauge-svg" width="140" height="140" viewBox="0 0 140 140">
+        <circle class="gauge-bg" cx="70" cy="70" r="54"/>
+        <circle class="gauge-fill" id="gauge-fill" cx="70" cy="70" r="54" stroke-dasharray="339" stroke-dashoffset="339"/>
+      </svg>
+      <div class="gauge-center">
+        <div class="gauge-num" id="gauge-num">0</div>
+        <div class="gauge-lbl">/ 100</div>
+      </div>
+    </div>
+    <div class="score-mid">
+      <div class="score-level-badge" id="level-badge">—</div>
+      <p class="score-summary" id="score-summary">—</p>
+      <div class="score-wallet">
+        <span id="wallet-display">—</span>
+        <button class="copy-btn" onclick="copyWallet()">copy</button>
+      </div>
+    </div>
+    <div class="radar-wrap">
+      <svg class="radar-svg" id="radar-svg" width="160" height="160" viewBox="0 0 160 160"></svg>
+    </div>
   </div>
 
-  <div class="scanner">
-    <div class="scanner-header">
-      <div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div>
-      <span class="scanner-title">wallet-scanner.js — SolRouter Agent v1.0</span>
-    </div>
-    <div class="scanner-body">
-      <label class="input-label" for="wallet-input">// enter solana wallet address</label>
-      <div class="input-wrap">
-        <input id="wallet-input" class="wallet-input" type="text" placeholder="7iM3vNN15rTa9b2B1Rg1UCZUEwSA1eRswja6a4gjFjb9" spellcheck="false" autocomplete="off"/>
-        <button class="scan-btn" id="scan-btn" onclick="runScan()">Run Scan →</button>
-      </div>
-      <div class="hint-row">
-        <span class="hint-chip">DEVNET</span>
-        Enter any valid Solana wallet · All queries encrypted end-to-end
-      </div>
-    </div>
+  <div class="stat-row">
+    <div class="stat-box"><div class="stat-tag">SOL Balance</div><div class="stat-val" id="s-sol">—</div><div class="stat-sub" id="s-sol-usd">—</div></div>
+    <div class="stat-box"><div class="stat-tag">USD Value</div><div class="stat-val ac" id="s-usd">—</div><div class="stat-sub">Est. portfolio value</div></div>
+    <div class="stat-box"><div class="stat-tag">Transactions</div><div class="stat-val" id="s-txs">—</div><div class="stat-sub" id="s-tx-sub">—</div></div>
+    <div class="stat-box"><div class="stat-tag">Wallet Age</div><div class="stat-val" id="s-age">—</div><div class="stat-sub">days on-chain</div></div>
   </div>
 
-  <div class="error-box" id="error-box"></div>
-
-  <div class="loading" id="loading">
-    <div class="scan-anim">
-      <div class="scan-ring"></div>
-      <div class="scan-ring2"></div>
-      <div class="scan-dot2"></div>
-    </div>
-    <div class="loading-title">Scanning Wallet</div>
-    <div class="loading-steps">
-      <div class="step" id="step1"><span class="step-icon">◉</span> Connecting to Solana Devnet</div>
-      <div class="step" id="step2"><span class="step-icon">◎</span> Fetching on-chain positions</div>
-      <div class="step" id="step3"><span class="step-icon">◎</span> Encrypting query payload</div>
-      <div class="step" id="step4"><span class="step-icon">◎</span> SolRouter encrypted inference</div>
-      <div class="step" id="step5"><span class="step-icon">◎</span> Generating risk report</div>
-    </div>
+  <div class="action-bar">
+    <button class="action-btn primary" onclick="exportReport()">⬇ Export Report</button>
+    <button class="action-btn" onclick="shareReport()">🔗 Share Link</button>
+    <button class="action-btn" onclick="newScan()">↺ New Scan</button>
+    <a id="explorer-link" class="action-btn" href="#" target="_blank">🔍 View on Explorer</a>
   </div>
 
-  <div class="results" id="results">
-    <div class="demo-note" id="demo-note">⚠ Nosana GPU nodes warming up — showing on-device analysis. Encrypted inference activates when nodes are live.</div>
+  <div class="result-tabs">
+    <div class="rtab on" onclick="showTab('overview')">Overview</div>
+    <div class="rtab" onclick="showTab('tokens')">Tokens</div>
+    <div class="rtab" onclick="showTab('transactions')">Transactions</div>
+    <div class="rtab" onclick="showTab('protocols')">Protocols</div>
+  </div>
 
-    <div class="risk-hero" id="risk-hero">
-      <div class="risk-inner">
-        <div>
-          <div class="risk-eyebrow">// risk assessment</div>
-          <div class="risk-score" id="risk-level-text">—</div>
-          <div class="risk-label-sm">Overall Portfolio Risk</div>
-          <div class="gauge-wrap">
-            <div class="gauge-bar"><div class="gauge-fill" id="gauge-fill"></div></div>
-            <div class="gauge-labels"><span>Low</span><span>Medium</span><span>High</span></div>
-          </div>
-        </div>
-        <div class="risk-right">
-          <p class="risk-summary-text" id="risk-summary-text">—</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="stats-row">
-      <div class="stat-box">
-        <div class="stat-tag">SOL Balance</div>
-        <div class="stat-val" id="sol-val">—</div>
-        <div class="stat-sub">Native token</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-tag">SPL Tokens</div>
-        <div class="stat-val ac" id="token-val">—</div>
-        <div class="stat-sub">Token accounts</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-tag">Scanned At</div>
-        <div class="stat-val" style="font-size:13px;margin-top:4px" id="time-val">—</div>
-        <div class="stat-sub">Devnet · Live data</div>
-      </div>
-    </div>
-
+  <!-- OVERVIEW TAB -->
+  <div class="rpanel on" id="tab-overview">
     <div class="two-col">
       <div class="panel">
-        <div class="panel-head">
-          <div class="panel-icon w">⚑</div>
-          <div class="panel-title">Risk Flags</div>
-          <div class="panel-count" id="flags-count">0</div>
-        </div>
+        <div class="panel-head"><div class="picon w">⚑</div><div class="panel-title">Risk Flags</div><div class="pcnt" id="flags-cnt">0</div></div>
         <div id="flags-list"></div>
       </div>
       <div class="panel">
-        <div class="panel-head">
-          <div class="panel-icon g">✦</div>
-          <div class="panel-title">Recommendations</div>
-          <div class="panel-count" id="recs-count">0</div>
-        </div>
+        <div class="panel-head"><div class="picon g">✦</div><div class="panel-title">Recommendations</div><div class="pcnt" id="recs-cnt">0</div></div>
         <div id="recs-list"></div>
       </div>
     </div>
-
-    <div class="token-panel" id="token-panel" style="display:none">
-      <div class="panel-head" style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border3)">
-        <div class="panel-icon g">◈</div>
-        <div class="panel-title">SPL Token Positions</div>
+    <div class="dims" id="dims-panel">
+      <div class="panel-head" style="margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border3);">
+        <div class="picon g">◈</div><div class="panel-title">Risk Dimension Breakdown</div>
       </div>
-      <div id="token-list"></div>
+      <div id="dims-list"></div>
     </div>
-
     <div class="privacy-bar">
-      <div class="privacy-icon">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      </div>
-      <div>
-        <div class="privacy-title">End-to-End Encrypted Analysis</div>
-        <div class="privacy-text">Wallet data encrypted before leaving your device. Processed inside a Trusted Execution Environment (TEE) on Nosana's decentralized GPU network — no centralized server ever sees your raw query.</div>
-      </div>
+      <div class="plock"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+      <div><div class="privacy-title">End-to-End Encrypted Analysis</div><div class="privacy-text">Your wallet data was encrypted before leaving this device. Processed inside a Trusted Execution Environment (TEE) on Nosana's decentralized GPU network — zero centralized server involvement.</div></div>
     </div>
   </div>
 
-  <footer class="page-footer">
-    <div class="footer-row">
-      Built by <a href="https://x.com/Olamiayan" target="_blank">OlaTech IT</a>
-      &nbsp;·&nbsp;
-      Powered by <a href="https://solrouter.com" target="_blank">SolRouter</a>
-    </div>
-    <div class="footer-socials">
-      <a href="https://x.com/SolRouterAI" target="_blank" class="social-chip">𝕏 @SolRouterAI</a>
-      <a href="https://t.me/+uEgTRV5CivVmYTRi" target="_blank" class="social-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg> Telegram</a>
-      <a href="https://solrouter.com/docs" target="_blank" class="social-chip">📄 Docs</a>
-      <a href="https://nosana.io" target="_blank" class="social-chip">⚡ Nosana</a>
-      <a href="https://solana.com" target="_blank" class="social-chip">◎ Solana</a>
-    </div>
-  </footer>
+  <!-- TOKENS TAB -->
+  <div class="rpanel" id="tab-tokens">
+    <div class="tbl-wrap"><table class="tbl">
+      <thead><tr><th>Token Mint</th><th>Balance</th><th>USD Value</th><th>Status</th></tr></thead>
+      <tbody id="tokens-tbody"></tbody>
+    </table></div>
+  </div>
+
+  <!-- TRANSACTIONS TAB -->
+  <div class="rpanel" id="tab-transactions">
+    <div class="tx-list" id="tx-list"></div>
+  </div>
+
+  <!-- PROTOCOLS TAB -->
+  <div class="rpanel" id="tab-protocols">
+    <div class="proto-grid" id="proto-grid"></div>
+    <div class="no-proto" id="no-proto" style="display:none">No known protocol interactions detected in recent transactions.<br/>This wallet may be new or interact with untracked protocols.</div>
+  </div>
+</div>
+
+<!-- COMPARE RESULTS -->
+<div class="compare-results" id="compare-results">
+  <div class="compare-card" id="compare-a"></div>
+  <div class="compare-card" id="compare-b"></div>
+</div>
+
+<footer class="footer">
+  <div class="footer-built">Built by <a href="https://x.com/Olamiayan" target="_blank">OlaTech IT</a> &nbsp;·&nbsp; Powered by <a href="https://solrouter.com" target="_blank">SolRouter</a></div>
+  <div class="footer-socials">
+    <a href="https://x.com/SolRouterAI" target="_blank" class="social-chip">𝕏 @SolRouterAI</a>
+    <a href="https://t.me/+uEgTRV5CivVmYTRi" target="_blank" class="social-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg> Telegram</a>
+    <a href="https://www.solrouter.com/docs" target="_blank" class="social-chip">📄 Docs</a>
+    <a href="https://nosana.io" target="_blank" class="social-chip">⚡ Nosana</a>
+    <a href="https://solana.com" target="_blank" class="social-chip">◎ Solana</a>
+    <a href="https://thearcadia.netlify.app/" target="_blank" class="social-chip">🎮 Arcadia</a>
+  </div>
+</footer>
 </div>
 
 <script>
-const STEPS=['step1','step2','step3','step4','step5'];
-function setStep(n){
-  STEPS.forEach((id,i)=>{
-    const el=document.getElementById(id);
-    el.className='step'+(i<n?' done':i===n?' active':'');
-    el.querySelector('.step-icon').textContent=i<n?'✓':i===n?'◉':'◎';
+// ── STATE ────────────────────────────────────
+let mode = 'single';
+let currentWallet = '';
+let currentReport = null;
+let currentPortfolio = null;
+const STEPS = ['s1','s2','s3','s4','s5','s6'];
+
+// ── THEME ────────────────────────────────────
+function toggleTheme() {
+  const html = document.documentElement;
+  const btn = document.getElementById('theme-btn');
+  if (html.dataset.theme === 'dark') {
+    html.dataset.theme = 'light';
+    btn.textContent = '🌙 Dark';
+  } else {
+    html.dataset.theme = 'dark';
+    btn.textContent = '☀ Light';
+  }
+}
+
+// ── MODE ─────────────────────────────────────
+function setMode(m) {
+  mode = m;
+  document.getElementById('tab-single').classList.toggle('active', m === 'single');
+  document.getElementById('tab-compare').classList.toggle('active', m === 'compare');
+  document.getElementById('compare-inputs').classList.toggle('show', m === 'compare');
+  document.getElementById('w1').parentElement.style.display = m === 'single' ? 'flex' : 'none';
+  const btn = document.getElementById('scan-btn');
+  btn.textContent = m === 'single' ? 'Run Scan →' : 'Compare →';
+}
+
+// ── HISTORY ──────────────────────────────────
+function saveHistory(wallet, score, level) {
+  const h = JSON.parse(localStorage.getItem('sr_history') || '[]');
+  h.unshift({ wallet, score, level, time: Date.now() });
+  localStorage.setItem('sr_history', JSON.stringify(h.slice(0, 8)));
+  renderHistory();
+}
+
+function renderHistory() {
+  const h = JSON.parse(localStorage.getItem('sr_history') || '[]');
+  const list = document.getElementById('history-list');
+  if (!h.length) { list.innerHTML = '<div style="font-family:var(--mono);font-size:11px;color:var(--muted)">No scans yet.</div>'; return; }
+  const colors = { LOW: 'var(--accent)', MEDIUM: 'var(--warn)', HIGH: 'var(--danger)' };
+  list.innerHTML = h.map(item => `
+    <div class="history-item" onclick="loadFromHistory('${item.wallet}')">
+      <div class="h-score" style="color:${colors[item.level]||'var(--muted2)'}">${item.score}</div>
+      <div class="h-wallet">${item.wallet}</div>
+      <div class="h-time">${timeAgo(item.time)}</div>
+    </div>`).join('');
+}
+
+function timeAgo(ts) {
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 60) return s + 's ago';
+  if (s < 3600) return Math.floor(s/60) + 'm ago';
+  return Math.floor(s/3600) + 'h ago';
+}
+
+function clearHistory() {
+  localStorage.removeItem('sr_history');
+  renderHistory();
+}
+
+function toggleHistory() {
+  const panel = document.getElementById('history-panel');
+  const btn = document.getElementById('history-btn');
+  const show = panel.classList.toggle('show');
+  btn.classList.toggle('active', show);
+  if (show) renderHistory();
+}
+
+function loadFromHistory(wallet) {
+  document.getElementById('w1').value = wallet;
+  setMode('single');
+  runScan();
+}
+
+// ── STEPS ─────────────────────────────────────
+function setStep(n) {
+  STEPS.forEach((id, i) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.className = 'step' + (i < n ? ' done' : i === n ? ' on' : '');
+    el.querySelector('.si').textContent = i < n ? '✓' : i === n ? '◉' : '◎';
   });
 }
-async function runScan(){
-  const wallet=document.getElementById('wallet-input').value.trim();
-  const btn=document.getElementById('scan-btn');
-  const loading=document.getElementById('loading');
-  const results=document.getElementById('results');
-  const errorBox=document.getElementById('error-box');
-  if(!wallet){showError('Please enter a Solana wallet address.');return;}
-  errorBox.classList.remove('active');
-  results.classList.remove('active');
-  document.getElementById('demo-note').style.display='none';
-  loading.classList.add('active');
-  btn.disabled=true;btn.textContent='Scanning...';
-  setStep(0);
-  setTimeout(()=>setStep(1),800);
-  setTimeout(()=>setStep(2),2200);
-  setTimeout(()=>setStep(3),3800);
-  setTimeout(()=>setStep(4),5500);
-  try{
-    const res=await fetch('/api/scan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({wallet})});
-    const data=await res.json();
-    if(!res.ok||data.error)throw new Error(data.error||'Unknown error');
-    setStep(5);
-    setTimeout(()=>{loading.classList.remove('active');renderResults(data.portfolio,data.report);},700);
-  }catch(err){
-    loading.classList.remove('active');
+
+// ── SCAN ──────────────────────────────────────
+async function runScan() {
+  const isCompare = mode === 'compare';
+  hideError(); hide('results'); hide('compare-results');
+
+  if (isCompare) {
+    await runCompare();
+    return;
+  }
+
+  const wallet = document.getElementById('w1').value.trim();
+  if (!wallet) { showError('Please enter a Solana wallet address.'); return; }
+
+  currentWallet = wallet;
+  const btn = document.getElementById('scan-btn');
+  btn.disabled = true; btn.textContent = 'Scanning...';
+  show('loading'); setStep(0);
+
+  const stepTimers = [800,1800,3000,4500,6000].map((t,i) => setTimeout(()=>setStep(i+1),t));
+
+  try {
+    const res = await fetch('/api/scan', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ wallet }) });
+    const data = await res.json();
+    stepTimers.forEach(clearTimeout);
+    if (!res.ok || data.error) throw new Error(data.error || 'Scan failed');
+    setStep(6);
+    currentPortfolio = data.portfolio;
+    currentReport = data.report;
+    setTimeout(() => { hide('loading'); renderResults(data.portfolio, data.report); }, 600);
+    saveHistory(wallet, data.report.riskScore, data.report.riskLevel);
+  } catch (err) {
+    stepTimers.forEach(clearTimeout);
+    hide('loading');
     showError(err.message);
-  }finally{
-    btn.disabled=false;btn.textContent='Run Scan →';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Run Scan →';
   }
 }
-function renderResults(portfolio,report){
-  const hero=document.getElementById('risk-hero');
-  hero.className='risk-hero '+report.riskLevel;
-  document.getElementById('risk-level-text').textContent=report.riskLevel;
-  document.getElementById('risk-summary-text').textContent=report.summary;
-  document.getElementById('sol-val').textContent=portfolio.solBalance.toFixed(4)+' SOL';
-  document.getElementById('token-val').textContent=portfolio.tokenCount;
-  document.getElementById('time-val').textContent=new Date(portfolio.fetchedAt).toLocaleTimeString();
-  const flagsEl=document.getElementById('flags-list');
-  flagsEl.innerHTML=report.flags.map(f=>`<div class="item"><div class="item-bul w"></div><div class="item-text">${f}</div></div>`).join('');
-  document.getElementById('flags-count').textContent=report.flags.length;
-  const recsEl=document.getElementById('recs-list');
-  recsEl.innerHTML=report.recommendations.map(r=>`<div class="item"><div class="item-bul g"></div><div class="item-text">${r}</div></div>`).join('');
-  document.getElementById('recs-count').textContent=report.recommendations.length;
-  if(portfolio.tokens&&portfolio.tokens.length>0){
-    const tp=document.getElementById('token-panel');
-    tp.style.display='block';
-    document.getElementById('token-list').innerHTML=portfolio.tokens.map(t=>`<div class="token-row"><div class="token-mint">${t.mint}</div><div class="token-bal">${t.balance??0} tokens</div></div>`).join('');
+
+async function runCompare() {
+  const wA = document.getElementById('wA').value.trim();
+  const wB = document.getElementById('wB').value.trim();
+  if (!wA || !wB) { showError('Please enter both wallet addresses.'); return; }
+
+  const btn = document.getElementById('scan-btn');
+  btn.disabled = true; btn.textContent = 'Comparing...';
+  show('loading'); setStep(0);
+
+  const timers = [800,2000,3500,5000,6500].map((t,i) => setTimeout(()=>setStep(i+1),t));
+
+  try {
+    const res = await fetch('/api/compare', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ walletA: wA, walletB: wB }) });
+    const data = await res.json();
+    timers.forEach(clearTimeout);
+    if (!res.ok || data.error) throw new Error(data.error || 'Compare failed');
+    setStep(6);
+    setTimeout(() => { hide('loading'); renderCompare(data); }, 600);
+  } catch (err) {
+    timers.forEach(clearTimeout);
+    hide('loading');
+    showError(err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Compare →';
   }
-  if(report._demo)document.getElementById('demo-note').style.display='block';
-  document.getElementById('results').classList.add('active');
 }
-function showError(msg){
-  const el=document.getElementById('error-box');
-  el.textContent='⚠ '+msg;
-  el.classList.add('active');
+
+// ── RENDER RESULTS ────────────────────────────
+function renderResults(portfolio, report) {
+  // Demo note
+  document.getElementById('demo-note').style.display = report._demo ? 'block' : 'none';
+
+  // Gauge
+  animateGauge(report.riskScore, report.riskLevel);
+
+  // Badge + summary
+  const badge = document.getElementById('level-badge');
+  badge.className = 'score-level-badge ' + report.riskLevel;
+  badge.textContent = report.riskLevel + ' RISK';
+  document.getElementById('score-summary').textContent = report.summary;
+  document.getElementById('wallet-display').textContent = portfolio.shortWallet;
+
+  // Stats
+  setVal('s-sol', portfolio.solBalance.toFixed(4) + ' SOL');
+  setVal('s-sol-usd', portfolio.solPrice ? '$' + (portfolio.solPrice).toFixed(2) + ' / SOL' : 'Price unavailable');
+  const totalUsd = (portfolio.solUsdValue || 0) + (portfolio.tokens || []).reduce((sum,t) => sum + (t.usdValue||0), 0);
+  setVal('s-usd', totalUsd > 0 ? '$' + totalUsd.toFixed(2) : 'N/A');
+  setVal('s-txs', portfolio.totalTxCount || '0');
+  setVal('s-tx-sub', portfolio.failedTxCount > 0 ? portfolio.failedTxCount + ' failed' : 'No failures');
+  setVal('s-age', portfolio.walletAgeDays !== null ? portfolio.walletAgeDays : '—');
+
+  // Explorer link
+  document.getElementById('explorer-link').href = `https://explorer.solana.com/address/${portfolio.wallet}?cluster=devnet`;
+
+  // Radar
+  if (report.dimensions) renderRadar(report.dimensions);
+
+  // Flags
+  const flags = report.flags || [];
+  document.getElementById('flags-cnt').textContent = flags.length;
+  document.getElementById('flags-list').innerHTML = flags.map(f => `<div class="pitem"><div class="pbul w"></div><div class="ptext">${f}</div></div>`).join('');
+
+  // Recs
+  const recs = report.recommendations || [];
+  document.getElementById('recs-cnt').textContent = recs.length;
+  document.getElementById('recs-list').innerHTML = recs.map(r => `<div class="pitem"><div class="pbul g"></div><div class="ptext">${r}</div></div>`).join('');
+
+  // Dimensions
+  if (report.dimensions) renderDimensions(report.dimensions);
+
+  // Tokens
+  const tbody = document.getElementById('tokens-tbody');
+  const toks = portfolio.tokens || [];
+  if (toks.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:12px;padding:32px">No token accounts found</td></tr>';
+  } else {
+    tbody.innerHTML = toks.map(t => {
+      const isDust = t.balance > 0 && t.balance < 0.001;
+      return `<tr>
+        <td class="mint-cell">${t.mint.slice(0,8)}…${t.mint.slice(-6)}${isDust ? '<span class="dust-badge">DUST</span>' : ''}</td>
+        <td class="bal-cell">${t.balance !== null ? t.balance.toFixed(6) : '0'}</td>
+        <td class="usd-cell">${t.usdValue > 0 ? '$' + t.usdValue.toFixed(4) : '—'}</td>
+        <td><span style="font-family:var(--mono);font-size:11px;color:${t.balance > 0 ? 'var(--accent)' : 'var(--muted)'}">${t.balance > 0 ? 'Active' : 'Empty'}</span></td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Transactions
+  const txList = document.getElementById('tx-list');
+  const txs = portfolio.recentTxs || [];
+  if (txs.length === 0) {
+    txList.innerHTML = '<div class="tx-empty">No recent transactions found.</div>';
+  } else {
+    txList.innerHTML = txs.map(tx => {
+      const dt = tx.blockTime ? new Date(tx.blockTime).toLocaleString() : '—';
+      return `<div class="tx-item">
+        <div class="tx-status ${tx.status === 'success' ? 'ok' : 'fail'}"></div>
+        <a class="tx-sig" href="https://explorer.solana.com/tx/${tx.signature}?cluster=devnet" target="_blank">${tx.shortSig}</a>
+        <span class="tx-badge ${tx.status === 'success' ? 'ok' : 'fail'}">${tx.status}</span>
+        <span class="tx-time">${dt}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // Protocols
+  const protos = portfolio.detectedProtocols || [];
+  const grid = document.getElementById('proto-grid');
+  const noProto = document.getElementById('no-proto');
+  if (protos.length === 0) {
+    grid.innerHTML = '';
+    noProto.style.display = 'block';
+  } else {
+    noProto.style.display = 'none';
+    grid.innerHTML = protos.map(p => `
+      <div class="proto-card">
+        <div class="proto-icon">${p.icon}</div>
+        <div class="proto-name">${p.name}</div>
+        <div class="proto-type">${p.type}</div>
+        <span class="proto-risk ${p.risk}">${p.risk} Risk</span>
+      </div>`).join('');
+  }
+
+  show('results');
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
-document.getElementById('wallet-input').addEventListener('keydown',e=>{if(e.key==='Enter')runScan();});
+
+function renderCompare(data) {
+  ['a','b'].forEach(k => {
+    const { portfolio, report } = data[k];
+    const card = document.getElementById('compare-' + k);
+    const colors = { LOW: 'var(--accent)', MEDIUM: 'var(--warn)', HIGH: 'var(--danger)' };
+    card.innerHTML = `
+      <div class="compare-card-header">
+        <span class="compare-tag">Wallet ${k.toUpperCase()}</span>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${portfolio.shortWallet}</span>
+      </div>
+      <div class="mini-gauge">
+        <div class="mini-score" style="color:${colors[report.riskLevel]}">${report.riskScore}</div>
+        <div class="mini-level" style="color:${colors[report.riskLevel]};letter-spacing:0.1em">${report.riskLevel} RISK</div>
+      </div>
+      ${[
+        ['SOL Balance', portfolio.solBalance.toFixed(4) + ' SOL'],
+        ['Active Tokens', portfolio.activeTokens?.length ?? 0],
+        ['Transactions', portfolio.totalTxCount || 0],
+        ['Dust Tokens', portfolio.dustTokens?.length ?? 0],
+        ['Wallet Age', (portfolio.walletAgeDays ?? '—') + ' days'],
+        ['Failed Txs', portfolio.failedTxCount || 0],
+      ].map(([l,v]) => `<div class="mini-stat"><span>${l}</span><span>${v}</span></div>`).join('')}
+      <div style="margin-top:14px;font-size:13px;color:var(--muted2);line-height:1.6">${report.summary}</div>`;
+  });
+  show('compare-results');
+  document.getElementById('compare-results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── GAUGE ANIMATION ───────────────────────────
+function animateGauge(score, level) {
+  const colors = { LOW: '#00f0a0', MEDIUM: '#f59e0b', HIGH: '#ff3d3d' };
+  const fill = document.getElementById('gauge-fill');
+  const num = document.getElementById('gauge-num');
+  const circ = 2 * Math.PI * 54;
+  const offset = circ - (circ * score / 100);
+  fill.style.strokeDashoffset = offset;
+  fill.style.stroke = colors[level] || '#00f0a0';
+  num.style.color = colors[level] || '#00f0a0';
+  let current = 0;
+  const step = score / 40;
+  const interval = setInterval(() => {
+    current = Math.min(current + step, score);
+    num.textContent = Math.round(current);
+    if (current >= score) clearInterval(interval);
+  }, 20);
+}
+
+// ── RADAR CHART ───────────────────────────────
+function renderRadar(dims) {
+  const svg = document.getElementById('radar-svg');
+  const cx = 80, cy = 80, r = 60;
+  const labels = ['Liquidity','Concentration','Activity','Security','Reliability'];
+  const keys = ['liquidity','concentration','activity','security','reliability'];
+  const angles = keys.map((_, i) => (i * 72 - 90) * Math.PI / 180);
+
+  const pt = (r, angle) => [cx + r * Math.cos(angle), cy + r * Math.sin(angle)];
+
+  // Grid circles
+  let html = [0.25,0.5,0.75,1].map(f => {
+    const pts = angles.map(a => pt(r*f, a)).map(p => p.join(',')).join(' ');
+    return `<polygon points="${pts}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
+  }).join('');
+
+  // Axes
+  html += angles.map(a => {
+    const [x,y] = pt(r, a);
+    return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
+  }).join('');
+
+  // Data polygon
+  const vals = keys.map(k => dims[k] / 100);
+  const dataPts = vals.map((v,i) => pt(r*v, angles[i])).map(p => p.join(',')).join(' ');
+  html += `<polygon points="${dataPts}" fill="rgba(0,240,160,0.12)" stroke="#00f0a0" stroke-width="1.5"/>`;
+
+  // Data dots
+  html += vals.map((v,i) => {
+    const [x,y] = pt(r*v, angles[i]);
+    return `<circle cx="${x}" cy="${y}" r="3" fill="#00f0a0"/>`;
+  }).join('');
+
+  // Labels
+  html += labels.map((l,i) => {
+    const [x,y] = pt(r+14, angles[i]);
+    return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle" font-size="9" fill="rgba(255,255,255,0.45)" font-family="monospace">${l}</text>`;
+  }).join('');
+
+  svg.innerHTML = html;
+}
+
+// ── DIMENSIONS BARS ───────────────────────────
+function renderDimensions(dims) {
+  const entries = [
+    ['Liquidity Risk', dims.liquidity],
+    ['Concentration Risk', dims.concentration],
+    ['Activity Score', dims.activity],
+    ['Security Risk', dims.security],
+    ['Reliability', dims.reliability],
+  ];
+  const color = v => v >= 70 ? '#ff3d3d' : v >= 40 ? '#f59e0b' : '#00f0a0';
+  document.getElementById('dims-list').innerHTML = entries.map(([name, val]) => `
+    <div class="dim-row">
+      <div class="dim-name">${name}</div>
+      <div class="dim-bar"><div class="dim-fill" style="width:${val}%;background:${color(val)}"></div></div>
+      <div class="dim-score">${val}</div>
+    </div>`).join('');
+}
+
+// ── TABS ──────────────────────────────────────
+function showTab(name) {
+  document.querySelectorAll('.rtab').forEach((t,i) => {
+    const tabs = ['overview','tokens','transactions','protocols'];
+    t.classList.toggle('on', tabs[i] === name);
+  });
+  document.querySelectorAll('.rpanel').forEach(p => {
+    p.classList.toggle('on', p.id === 'tab-' + name);
+  });
+}
+
+// ── ACTIONS ───────────────────────────────────
+function copyWallet() {
+  navigator.clipboard.writeText(currentWallet).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'copied!'; btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.textContent = 'copy'; btn.style.color = ''; }, 1500);
+  });
+}
+
+function shareReport() {
+  const url = window.location.origin + '?wallet=' + encodeURIComponent(currentWallet);
+  navigator.clipboard.writeText(url).then(() => alert('Link copied to clipboard!'));
+}
+
+function newScan() {
+  hide('results'); hide('compare-results'); hide('err-box');
+  document.getElementById('w1').value = '';
+  document.getElementById('w1').focus();
+}
+
+function exportReport() {
+  if (!currentReport || !currentPortfolio) return;
+  const lines = [
+    '═══════════════════════════════════════',
+    '  SOLROUTER DEFI RISK INTELLIGENCE',
+    '═══════════════════════════════════════',
+    `  Generated: ${new Date().toLocaleString()}`,
+    `  Wallet: ${currentPortfolio.wallet}`,
+    `  Network: Solana Devnet`,
+    '',
+    `  RISK SCORE: ${currentReport.riskScore} / 100`,
+    `  RISK LEVEL: ${currentReport.riskLevel}`,
+    '',
+    '  SUMMARY:',
+    `  ${currentReport.summary}`,
+    '',
+    '  PORTFOLIO:',
+    `  SOL Balance: ${currentPortfolio.solBalance.toFixed(4)} SOL`,
+    `  Active Tokens: ${currentPortfolio.activeTokens?.length ?? 0}`,
+    `  Transactions: ${currentPortfolio.totalTxCount}`,
+    `  Wallet Age: ${currentPortfolio.walletAgeDays ?? '?'} days`,
+    '',
+    '  RISK FLAGS:',
+    ...(currentReport.flags||[]).map(f => `  • ${f}`),
+    '',
+    '  RECOMMENDATIONS:',
+    ...(currentReport.recommendations||[]).map(r => `  → ${r}`),
+    '',
+    '  RISK DIMENSIONS:',
+    ...Object.entries(currentReport.dimensions||{}).map(([k,v]) => `  ${k}: ${v}/100`),
+    '',
+    '  Powered by SolRouter encrypted inference',
+    '  Built by OlaTech IT · x.com/Olamiayan',
+    '═══════════════════════════════════════',
+  ];
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `solrouter-risk-report-${currentPortfolio.shortWallet}.txt`;
+  a.click();
+}
+
+// ── UTILS ─────────────────────────────────────
+function show(id) { const el = document.getElementById(id); if (el) el.classList.add('show'); }
+function hide(id) { const el = document.getElementById(id); if (el) el.classList.remove('show'); }
+function setVal(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+function showError(msg) { const el = document.getElementById('err-box'); el.textContent = '⚠ ' + msg; el.classList.add('show'); }
+function hideError() { document.getElementById('err-box').classList.remove('show'); }
+
+// ── INIT ──────────────────────────────────────
+document.getElementById('w1').addEventListener('keydown', e => { if (e.key === 'Enter') runScan(); });
+document.getElementById('wA').addEventListener('keydown', e => { if (e.key === 'Enter') runScan(); });
+document.getElementById('wB').addEventListener('keydown', e => { if (e.key === 'Enter') runScan(); });
+
+// Auto-load wallet from URL param
+const urlWallet = new URLSearchParams(window.location.search).get('wallet');
+if (urlWallet) { document.getElementById('w1').value = urlWallet; setTimeout(runScan, 500); }
+
+renderHistory();
 </script>
 </body>
 </html>

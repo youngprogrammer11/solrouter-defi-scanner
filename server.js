@@ -1,44 +1,77 @@
-// server.js — Web server for SolRouter DeFi Risk Scanner
-// Run: node server.js → open http://localhost:3000
+// server.js — SolRouter DeFi Risk Scanner web server
 
 require("dotenv").config();
 const express = require("express");
 const path = require("path");
 const { fetchPortfolio } = require("./portfolio");
 const { analyzePortfolio } = require("./analyzer");
+const { fetchTokenPrices, SOL_MINT } = require("./prices");
 
 const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-const SOLROUTER_API_KEY = process.env.SOLROUTER_API_KEY;
-const SOLANA_RPC_URL = process.env.SOLANA_RPC_URL || "https://api.devnet.solana.com";
+const API_KEY = process.env.SOLROUTER_API_KEY;
+const RPC_URL = process.env.SOLANA_RPC_URL || "https://api.devnet.solana.com";
 
-// Health check
-app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", rpc: SOLANA_RPC_URL });
-});
+// ── Health ──────────────────────────────────
+app.get("/api/health", (_, res) => res.json({ ok: true, rpc: RPC_URL }));
 
-// Main scan endpoint
+// ── Single wallet scan ──────────────────────
 app.post("/api/scan", async (req, res) => {
   const { wallet } = req.body;
-
-  if (!wallet) {
-    return res.status(400).json({ error: "Wallet address is required" });
-  }
-
-  if (!SOLROUTER_API_KEY || SOLROUTER_API_KEY === "sk_solrouter_YOURKEYHERE") {
+  if (!wallet) return res.status(400).json({ error: "Wallet address required" });
+  if (!API_KEY || API_KEY === "sk_solrouter_YOURKEYHERE")
     return res.status(500).json({ error: "SolRouter API key not configured in .env" });
-  }
 
   try {
-    // Step 1: Fetch portfolio from Solana
-    const portfolio = await fetchPortfolio(wallet, SOLANA_RPC_URL);
+    const portfolio = await fetchPortfolio(wallet, RPC_URL);
+    const [report, prices] = await Promise.all([
+      analyzePortfolio(portfolio, API_KEY),
+      fetchTokenPrices(portfolio.tokens.map(t => t.mint)),
+    ]);
 
-    // Step 2: Analyze via SolRouter encrypted inference
-    const report = await analyzePortfolio(portfolio, SOLROUTER_API_KEY);
+    // Enrich tokens with USD prices
+    const solPrice = prices[SOL_MINT] || 0;
+    const enrichedTokens = portfolio.tokens.map(t => ({
+      ...t,
+      usdPrice: prices[t.mint] || 0,
+      usdValue: (prices[t.mint] || 0) * (t.balance || 0),
+    }));
 
-    res.json({ portfolio, report });
+    res.json({
+      portfolio: { ...portfolio, tokens: enrichedTokens, solUsdValue: solPrice * portfolio.solBalance, solPrice },
+      report,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── Compare two wallets ─────────────────────
+app.post("/api/compare", async (req, res) => {
+  const { walletA, walletB } = req.body;
+  if (!walletA || !walletB) return res.status(400).json({ error: "Both wallet addresses required" });
+  if (!API_KEY || API_KEY === "sk_solrouter_YOURKEYHERE")
+    return res.status(500).json({ error: "SolRouter API key not configured in .env" });
+
+  try {
+    const [portfolioA, portfolioB] = await Promise.all([
+      fetchPortfolio(walletA, RPC_URL),
+      fetchPortfolio(walletB, RPC_URL),
+    ]);
+    const [reportA, reportB] = await Promise.all([
+      analyzePortfolio(portfolioA, API_KEY),
+      analyzePortfolio(portfolioB, API_KEY),
+    ]);
+    const allMints = [...portfolioA.tokens, ...portfolioB.tokens].map(t => t.mint);
+    const prices = await fetchTokenPrices(allMints);
+    const solPrice = prices[SOL_MINT] || 0;
+
+    res.json({
+      a: { portfolio: { ...portfolioA, solUsdValue: solPrice * portfolioA.solBalance, solPrice }, report: reportA },
+      b: { portfolio: { ...portfolioB, solUsdValue: solPrice * portfolioB.solBalance, solPrice }, report: reportB },
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -46,9 +79,8 @@ app.post("/api/scan", async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log("\n╔══════════════════════════════════════════════╗");
-  console.log("║   🔐 SolRouter DeFi Portfolio Risk Scanner   ║");
-  console.log("╚══════════════════════════════════════════════╝");
-  console.log(`\n✅ Server running at: http://localhost:${PORT}`);
-  console.log("   Open that URL in your browser to use the app.\n");
+  console.log("\n╔══════════════════════════════════════════╗");
+  console.log("║  🔐 SolRouter DeFi Risk Scanner v2.0    ║");
+  console.log("╚══════════════════════════════════════════╝");
+  console.log(`\n✅ Running at: http://localhost:${PORT}\n`);
 });
