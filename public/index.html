@@ -302,6 +302,7 @@ h1{font-size:clamp(34px,6vw,62px);font-weight:900;line-height:1.0;letter-spacing
   .health-card{grid-template-columns:1fr 1fr 1fr;}
   .cmp-results.on{grid-template-columns:1fr;}
 }
+@media(max-width:860px){#cmp-score-grid{grid-template-columns:1fr!important;}}
 @media(max-width:640px){
   nav{margin-bottom:36px;}
   h1{font-size:32px;}
@@ -513,9 +514,72 @@ h1{font-size:clamp(34px,6vw,62px);font-weight:900;line-height:1.0;letter-spacing
 </div>
 
 <!-- COMPARE RESULTS -->
-<div class="cmp-results" id="cmp-results">
-  <div class="cmp-card" id="cmp-a"></div>
-  <div class="cmp-card" id="cmp-b"></div>
+<div id="cmp-results" style="display:none">
+  <!-- Compare Header -->
+  <div style="background:var(--card);border:1px solid var(--border2);border-radius:var(--rl);padding:16px 22px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden;">
+    <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent)"></div>
+    <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent)">// Wallet Comparison Report</div>
+    <button class="act-btn" onclick="newScan()">↺ New Scan</button>
+  </div>
+
+  <!-- Score Banner side by side -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;" id="cmp-score-grid">
+    <div class="cmp-card" id="cmp-a-score"></div>
+    <div class="cmp-card" id="cmp-b-score"></div>
+  </div>
+
+  <!-- Stats comparison table -->
+  <div style="background:var(--card);border:1px solid var(--border3);border-radius:var(--rl);overflow:hidden;margin-bottom:14px;">
+    <table class="tbl">
+      <thead><tr><th>Metric</th><th id="cmp-th-a">Wallet A</th><th id="cmp-th-b">Wallet B</th></tr></thead>
+      <tbody id="cmp-stats-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- Flags & Recs side by side -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+    <div class="panel">
+      <div class="p-head"><div class="p-icon w">⚑</div><div class="p-title">Wallet A — Risk Flags</div><div class="pcnt" id="cmp-a-flags-cnt">0</div></div>
+      <div id="cmp-a-flags"></div>
+    </div>
+    <div class="panel">
+      <div class="p-head"><div class="p-icon w">⚑</div><div class="p-title">Wallet B — Risk Flags</div><div class="pcnt" id="cmp-b-flags-cnt">0</div></div>
+      <div id="cmp-b-flags"></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+    <div class="panel">
+      <div class="p-head"><div class="p-icon g">✦</div><div class="p-title">Wallet A — Recommendations</div></div>
+      <div id="cmp-a-recs"></div>
+    </div>
+    <div class="panel">
+      <div class="p-head"><div class="p-icon g">✦</div><div class="p-title">Wallet B — Recommendations</div></div>
+      <div id="cmp-b-recs"></div>
+    </div>
+  </div>
+
+  <!-- Tokens side by side -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+    <div class="tbl-wrap">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);letter-spacing:0.08em;text-transform:uppercase;padding:10px 14px;border-bottom:1px solid var(--border3);background:var(--surface)">Wallet A · Tokens</div>
+      <table class="tbl"><thead><tr><th>Mint</th><th>Balance</th><th>RugCheck</th></tr></thead><tbody id="cmp-a-tokens"></tbody></table>
+    </div>
+    <div class="tbl-wrap">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);letter-spacing:0.08em;text-transform:uppercase;padding:10px 14px;border-bottom:1px solid var(--border3);background:var(--surface)">Wallet B · Tokens</div>
+      <table class="tbl"><thead><tr><th>Mint</th><th>Balance</th><th>RugCheck</th></tr></thead><tbody id="cmp-b-tokens"></tbody></table>
+    </div>
+  </div>
+
+  <!-- Risk dimensions side by side -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+    <div class="dims"><div class="p-head" style="margin-bottom:12px;padding-bottom:11px;border-bottom:1px solid var(--border3)"><div class="p-icon g">◈</div><div class="p-title">Wallet A · Risk Dimensions</div></div><div id="cmp-a-dims"></div></div>
+    <div class="dims"><div class="p-head" style="margin-bottom:12px;padding-bottom:11px;border-bottom:1px solid var(--border3)"><div class="p-icon g">◈</div><div class="p-title">Wallet B · Risk Dimensions</div></div><div id="cmp-b-dims"></div></div>
+  </div>
+
+  <div class="priv-bar">
+    <div class="plock"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+    <div><div class="priv-title">Both wallets analyzed with end-to-end encryption</div><div class="priv-text">All queries encrypted before leaving your device. Processed in isolated hardware on Nosana's decentralized GPU network. Zero logs.</div></div>
+  </div>
 </div>
 
 <footer class="footer">
@@ -568,14 +632,14 @@ function setStep(n){
 }
 
 // ── HISTORY ──────────────────────────────────
-function getH(){try{return JSON.parse(localStorage.getItem('sr_h')||'[]');}catch(e){return[];}}
+function getH(){try{return JSON.parse(sessionStorage.getItem('sr_h')||'[]');}catch(e){return[];}}
 function saveHistory(wallet,score,level){
   var h=getH().filter(function(x){return x.wallet!==wallet;});
   h.unshift({wallet:wallet,score:score,level:level});
-  try{localStorage.setItem('sr_h',JSON.stringify(h.slice(0,6)));}catch(e){}
+  try{sessionStorage.setItem('sr_h',JSON.stringify(h.slice(0,6)));}catch(e){}
   renderChips();
 }
-function clearHistory(){try{localStorage.removeItem('sr_h');}catch(e){}renderChips();}
+function clearHistory(){try{sessionStorage.removeItem('sr_h');}catch(e){}renderChips();}
 function renderChips(){
   var row=document.getElementById('recent-row');
   var wrap=document.getElementById('recent-chips');
@@ -610,7 +674,7 @@ async function runScan(){
   currentWallet=wallet;
   var btn=document.getElementById('scan-btn');
   btn.disabled=true;btn.textContent='Scanning...';
-  hide('results');hide('cmp-results');hideErr();show('loading');setStep(0);
+  hide('results');document.getElementById('cmp-results').style.display='none';hideErr();show('loading');setStep(0);
   var timers=[800,1800,3200,4800,6400].map(function(t,i){return setTimeout(function(){setStep(i+1);},t);});
   try{
     var res=await fetch('/api/scan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({wallet:wallet})});
@@ -639,7 +703,7 @@ async function runCompare(){
   if(!wA||!wB){showErr('Please enter both wallet addresses.');return;}
   var btn=document.getElementById('scan-btn');
   btn.disabled=true;btn.textContent='Comparing...';
-  hide('results');hide('cmp-results');hideErr();show('loading');setStep(0);
+  hide('results');document.getElementById('cmp-results').style.display='none';hideErr();show('loading');setStep(0);
   var timers=[800,2000,3500,5000,6500].map(function(t,i){return setTimeout(function(){setStep(i+1);},t);});
   try{
     var res=await fetch('/api/compare',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({walletA:wA,walletB:wB})});
@@ -660,7 +724,19 @@ async function runCompare(){
 
 // ── RENDER ────────────────────────────────────
 function renderResults(p,r,approvals){
-  document.getElementById('demo-note').style.display=r._demo?'block':'none';
+  var demoNote = document.getElementById('demo-note');
+  if(r._demo){
+    demoNote.style.display='block';
+    demoNote.textContent='⚠ SolRouter nodes warming up — showing on-device analysis. Add ANTHROPIC_API_KEY to .env for live Claude fallback.';
+  } else if(r._source==='claude'){
+    demoNote.style.display='block';
+    demoNote.style.background='rgba(0,128,255,0.06)';
+    demoNote.style.borderColor='rgba(0,128,255,0.2)';
+    demoNote.style.color='#60a5fa';
+    demoNote.textContent='ℹ Analyzed via Claude AI fallback (SolRouter nodes cold). Add ANTHROPIC_API_KEY to .env for live inference.';
+  } else {
+    demoNote.style.display='none';
+  }
 
   // Net worth
   var totalUsd=p.totalUsd||0;
@@ -817,22 +893,91 @@ function renderResults(p,r,approvals){
 
 function renderCompare(data){
   var clr={LOW:'var(--accent)',MEDIUM:'var(--warn)',HIGH:'var(--danger)'};
+  var clrHex={LOW:'#00f0a0',MEDIUM:'#f59e0b',HIGH:'#ff3d3d'};
+  var dimDefs=[['Liquidity','liquidity'],['Concentration','concentration'],['Activity','activity'],['Security','security'],['Reliability','reliability']];
+
   ['a','b'].forEach(function(k){
     var p=data[k].portfolio, r=data[k].report;
-    var card=document.getElementById('cmp-'+k);
     var c=clr[r.riskLevel]||'var(--muted2)';
-    card.innerHTML='<div class="cmp-hdr"><span class="cmp-tag">Wallet '+k.toUpperCase()+'</span>'
-      +'<span style="font-family:var(--mono);font-size:11px;color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+p.shortWallet+'</span></div>'
-      +'<div class="mini-score"><div class="ms-num" style="color:'+c+'">'+r.riskScore+'</div><div class="ms-lvl" style="color:'+c+';letter-spacing:0.1em">'+r.riskLevel+' RISK</div></div>'
-      +[['SOL Balance',p.solBalance.toFixed(4)+' SOL'],['Net Worth',p.totalUsd?'$'+p.totalUsd.toFixed(2):'N/A'],
-        ['Active Tokens',p.activeTokens?p.activeTokens.length:0],['Transactions',p.totalTxCount||0],
-        ['Dust Tokens',p.dustTokens?p.dustTokens.length:0],['Wallet Age',(p.walletAgeDays||'—')+' days']
-      ].map(function(row){return '<div class="mini-stat"><span>'+row[0]+'</span><span>'+row[1]+'</span></div>';}).join('')
-      +'<div style="margin-top:12px;font-size:13px;color:var(--muted2);line-height:1.6">'+r.summary+'</div>';
+    var ch=clrHex[r.riskLevel]||'#6b7a94';
+
+    // Score card
+    var sc=document.getElementById('cmp-'+k+'-score');
+    sc.innerHTML='<div class="cmp-hdr"><span class="cmp-tag">Wallet '+k.toUpperCase()+'</span>'
+      +'<span style="font-family:var(--mono);font-size:11px;color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;margin-left:8px">'+p.shortWallet+'</span></div>'
+      +'<div style="text-align:center;padding:12px 0;">'
+      +'<div style="font-size:52px;font-weight:900;font-family:var(--mono);color:'+c+';line-height:1">'+r.riskScore+'</div>'
+      +'<div style="font-family:var(--mono);font-size:11px;letter-spacing:0.1em;color:'+c+';margin-top:4px">'+r.riskLevel+' RISK</div>'
+      +'<div style="font-size:13px;color:var(--muted2);margin-top:10px;line-height:1.6">'+r.summary+'</div>'
+      +(r._demo?'<div style="font-family:var(--mono);font-size:10px;color:var(--warn);margin-top:8px;">⚠ On-device analysis</div>':'')
+      +'</div>';
+
+    // Wallet A/B column headers
+    document.getElementById('cmp-th-'+k).textContent='Wallet '+k.toUpperCase()+' — '+p.shortWallet;
+
+    // Flags
+    var flags=r.flags||[];
+    setV('cmp-'+k+'-flags-cnt',flags.length);
+    document.getElementById('cmp-'+k+'-flags').innerHTML=flags.length
+      ?flags.map(function(f){return '<div class="pitem"><div class="pbul w"></div><div class="ptext">'+f+'</div></div>';}).join('')
+      :'<div class="ptext" style="padding:8px 0;color:var(--muted)">No flags detected</div>';
+
+    // Recs
+    var recs=r.recommendations||[];
+    document.getElementById('cmp-'+k+'-recs').innerHTML=recs.length
+      ?recs.map(function(rc){return '<div class="pitem"><div class="pbul g"></div><div class="ptext">'+rc+'</div></div>';}).join('')
+      :'<div class="ptext" style="padding:8px 0;color:var(--muted)">No recommendations</div>';
+
+    // Tokens
+    var toks=p.tokens||[];
+    var tbody=document.getElementById('cmp-'+k+'-tokens');
+    tbody.innerHTML=toks.length?toks.map(function(t){
+      var rc=t.rugcheck;
+      var badge=rc?'<span class="rug-badge '+(rc.verdict==='GOOD'?'good':rc.verdict==='WARN'?'warn':'danger')+'">'+rc.verdict+'</span>':'<span class="rug-badge muted">—</span>';
+      return '<tr><td class="mint-c">'+t.mint.slice(0,6)+'…'+t.mint.slice(-4)+'</td><td class="bal-c">'+(t.balance||0).toFixed(4)+'</td><td>'+badge+'</td></tr>';
+    }).join(''):'<tr><td colspan="3" style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:12px;padding:20px">No tokens</td></tr>';
+
+    // Dimensions
+    var dims=r.dimensions||{};
+    document.getElementById('cmp-'+k+'-dims').innerHTML=dimDefs.map(function(d){
+      var val=dims[d[1]]||0;
+      var col=val>=70?'#ff3d3d':val>=40?'#f59e0b':'#00f0a0';
+      return '<div class="dim-row"><div class="dim-name">'+d[0]+'</div>'
+        +'<div class="dim-bar"><div class="dim-fill" style="width:'+val+'%;background:'+col+'"></div></div>'
+        +'<div class="dim-score">'+val+'</div></div>';
+    }).join('');
   });
-  show('cmp-results');
-  document.getElementById('cmp-results').scrollIntoView({behavior:'smooth',block:'start'});
+
+  // Stats comparison table
+  var pA=data.a.portfolio, pB=data.b.portfolio;
+  var rA=data.a.report, rB=data.b.report;
+  var rows=[
+    ['Risk Score', rA.riskScore+'/100', rB.riskScore+'/100', rA.riskScore<rB.riskScore],
+    ['Risk Level', rA.riskLevel, rB.riskLevel, false],
+    ['Net Worth', pA.totalUsd?'$'+pA.totalUsd.toFixed(2):'N/A', pB.totalUsd?'$'+pB.totalUsd.toFixed(2):'N/A', false],
+    ['SOL Balance', pA.solBalance.toFixed(4), pB.solBalance.toFixed(4), pA.solBalance>pB.solBalance],
+    ['Active Tokens', (pA.activeTokens?pA.activeTokens.length:0), (pB.activeTokens?pB.activeTokens.length:0), false],
+    ['Dust Tokens', (pA.dustTokens?pA.dustTokens.length:0), (pB.dustTokens?pB.dustTokens.length:0), (pA.dustTokens?pA.dustTokens.length:0)<(pB.dustTokens?pB.dustTokens.length:0)],
+    ['Transactions', pA.totalTxCount||0, pB.totalTxCount||0, (pA.totalTxCount||0)>(pB.totalTxCount||0)],
+    ['Failed Txs', pA.failedTxCount||0, pB.failedTxCount||0, (pA.failedTxCount||0)<(pB.failedTxCount||0)],
+    ['Wallet Age', (pA.walletAgeDays||'—')+' days', (pB.walletAgeDays||'—')+' days', false],
+    ['Risk Flags', (rA.flags||[]).length, (rB.flags||[]).length, (rA.flags||[]).length<(rB.flags||[]).length],
+  ];
+  document.getElementById('cmp-stats-tbody').innerHTML=rows.map(function(row){
+    var aWin=row[3]===true;
+    var bWin=row[3]===false&&row[1]!==row[2];
+    return '<tr><td style="font-family:var(--mono);font-size:11px;color:var(--muted2)">'+row[0]+'</td>'
+      +'<td style="font-family:var(--mono);font-size:12px;'+(aWin?'color:var(--accent);font-weight:700':'')+'">'+row[1]+(aWin?' ✓':'')+'</td>'
+      +'<td style="font-family:var(--mono);font-size:12px;'+(bWin?'color:var(--accent);font-weight:700':'')+'">'+row[2]+(bWin?' ✓':'')+'</td></tr>';
+  }).join('');
+
+  // Show results
+  var el=document.getElementById('cmp-results');
+  el.style.display='block';
+  el.scrollIntoView({behavior:'smooth',block:'start'});
 }
+
+
 
 // ── GAUGE ─────────────────────────────────────
 function animateGauge(score,level){
@@ -897,7 +1042,7 @@ function shareReport(){
   var url=window.location.origin+'?wallet='+encodeURIComponent(currentWallet);
   navigator.clipboard.writeText(url).then(function(){alert('Share link copied to clipboard!');});
 }
-function newScan(){hide('results');hide('cmp-results');hideErr();document.getElementById('w1').value='';document.getElementById('w1').focus();}
+function newScan(){hide('results');document.getElementById('cmp-results').style.display='none';hideErr();document.getElementById('w1').value='';document.getElementById('w1').focus();}
 
 function exportTxt(){
   if(!currentReport||!currentPortfolio) return;
