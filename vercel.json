@@ -1,13 +1,16 @@
 {
   "version": 2,
-  "buildCommand": "echo 'no build needed'",
-  "outputDirectory": "public",
+  "builds": [
+    { "src": "public/index.html", "use": "@vercel/static" },
+    { "src": "api/*.js", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/api/scan", "dest": "/api/scan.js" },
+    { "src": "/api/compare", "dest": "/api/compare.js" },
+    { "src": "/api/health", "dest": "/api/health.js" },
+    { "src": "/(.*)", "dest": "/public/$1" }
+  ],
   "functions": {
     "api/*.js": { "maxDuration": 60 }
-  },
-  "rewrites": [
-    { "source": "/api/scan", "destination": "/api/scan.js" },
-    { "source": "/api/compare", "destination": "/api/compare.js" },
-    { "source": "/api/health", "destination": "/api/health.js" }
-  ]
+  }
 }
