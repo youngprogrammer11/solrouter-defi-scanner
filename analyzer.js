@@ -100,37 +100,71 @@ async function trySolRouter(portfolio, apiKey) {
   return null;
 }
 
-// ── Try Claude API as fallback ────────────────────────────────
+// ── Try Groq API as fallback (free tier available) ───────────
 async function tryClaude(portfolio, claudeKey) {
-  if (!claudeKey || claudeKey === 'your_claude_key_here') return null;
-  console.log('   Trying Claude API fallback...');
-  try {
-    const res = await fetch(CLAUDE_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': claudeKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1024,
-        messages: [{ role: 'user', content: buildPrompt(portfolio) }],
-      }),
-      signal: AbortSignal.timeout(20000),
-    });
-    if (!res.ok) { const t = await res.text(); throw new Error(`Claude ${res.status}: ${t.slice(0,100)}`); }
-    const data = await res.json();
-    const raw = data.content?.[0]?.text || '';
-    const match = raw.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error('no JSON in Claude reply');
-    const report = JSON.parse(match[0]);
-    console.log('   ✅ Claude API fallback successful');
-    return { ...report, _source: 'claude', _demo: false };
-  } catch (err) {
-    console.log(`   ⚠ Claude failed: ${err.message}`);
-    return null;
+  // Try Groq first (free), then Claude if key exists
+  const groqKey = process.env.GROQ_API_KEY;
+  const anthropicKey = claudeKey;
+
+  // Try Groq
+  if (groqKey && groqKey !== 'your_groq_key_here') {
+    console.log('   Trying Groq API fallback...');
+    try {
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqKey}` },
+        body: JSON.stringify({
+          model: 'llama-3.1-8b-instant',
+          max_tokens: 1024,
+          temperature: 0.1,
+          messages: [
+            { role: 'system', content: 'You are a DeFi risk analyst. Always respond with valid JSON only, no markdown, no extra text.' },
+            { role: 'user', content: buildPrompt(portfolio) }
+          ],
+        }),
+        signal: AbortSignal.timeout(20000),
+      });
+      if (!res.ok) { const t = await res.text(); throw new Error(`Groq ${res.status}: ${t.slice(0,100)}`); }
+      const data = await res.json();
+      const raw = data.choices?.[0]?.message?.content || '';
+      const match = raw.match(/\{[\s\S]*\}/);
+      if (!match) throw new Error('no JSON in Groq reply');
+      const report = JSON.parse(match[0]);
+      console.log('   ✅ Groq API fallback successful');
+      return { ...report, _source: 'groq', _demo: false };
+    } catch (err) {
+      console.log(`   ⚠ Groq failed: ${err.message}`);
+    }
   }
+
+  // Try Claude
+  if (anthropicKey && anthropicKey !== 'your_claude_key_here') {
+    console.log('   Trying Claude API fallback...');
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 1024,
+          messages: [{ role: 'user', content: buildPrompt(portfolio) }],
+        }),
+        signal: AbortSignal.timeout(20000),
+      });
+      if (!res.ok) { const t = await res.text(); throw new Error(`Claude ${res.status}: ${t.slice(0,100)}`); }
+      const data = await res.json();
+      const raw = data.content?.[0]?.text || '';
+      const match = raw.match(/\{[\s\S]*\}/);
+      if (!match) throw new Error('no JSON in Claude reply');
+      const report = JSON.parse(match[0]);
+      console.log('   ✅ Claude API fallback successful');
+      return { ...report, _source: 'claude', _demo: false };
+    } catch (err) {
+      console.log(`   ⚠ Claude failed: ${err.message}`);
+    }
+  }
+
+  return null;
 }
 
 // ── On-device demo analysis (always works) ────────────────────
