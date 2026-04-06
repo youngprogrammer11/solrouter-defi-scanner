@@ -2,7 +2,8 @@
 
 > The first encrypted DeFi risk scanner on Solana — powered by SolRouter's private inference engine. Your wallet data is encrypted before leaving your device, processed inside isolated hardware, and never logged anywhere.
 
-**Built by [OlaTech IT](https://x.com/Olamiayan) · [Live Demo](https://thearcadia.netlify.app/)**
+**Built by [OlaTech IT](https://x.com/Olamiayan)**  
+**Powered by [SolRouter](https://solrouter.com) · [Nosana Network](https://nosana.io) · [Solana](https://solana.com)**
 
 ---
 
@@ -10,28 +11,58 @@
 
 This tool scans any Solana wallet and generates a comprehensive risk intelligence report using **SolRouter's encrypted inference** — so your wallet address, token balances, and strategy are never exposed to any public server.
 
-### Features
-- **Risk Score (0–100)** — quantitative score across 5 risk dimensions
-- **5-Dimension Radar Chart** — Liquidity, Concentration, Activity, Security, Reliability
-- **Live Token USD Values** — via Jupiter Price API
-- **Transaction History** — last 10 txs with status, timestamp, explorer links
-- **Protocol Detection** — identifies interactions with Marinade, Jupiter, Orca, Raydium, Solend, and more
-- **Dust Token Detection** — flags potential scam/airdrop tokens
-- **Wallet Age & Activity Score** — on-chain history analysis
-- **Compare Two Wallets** — side-by-side risk comparison
-- **Export Report** — download full report as `.txt`
-- **Shareable URL** — pre-load any wallet via `?wallet=...`
-- **Recent Scans** — localStorage history as quick-access chips
-- **Light / Dark Mode** — full theme support
-- **Fully Responsive** — works on all screen sizes
-
-### Why Private Inference Matters for DeFi
-When you analyze a portfolio using a standard AI API, your wallet address, token balances, and strategy are sent as **plaintext to a centralized server**. This means:
+### Why Privacy Matters for DeFi
+When you analyze a portfolio using a standard AI API (OpenAI, Anthropic, etc.), your wallet address, token balances, and strategy are sent as **plaintext to a centralized server**. This means:
 - Your positions could be front-run
-- Your strategy could be leaked or logged
-- Your wallet is permanently tied to your queries
+- Your strategy could be leaked or logged permanently
+- Your wallet is tied to your queries forever
 
-SolRouter solves this by encrypting your query before it leaves your device, processing it inside a **Trusted Execution Environment (TEE)** on [Nosana's](https://nosana.io) decentralized GPU network, and routing through Solana — so inference is both private and verifiable.
+SolRouter solves this by encrypting your query **before it leaves your device**, processing it inside a **Trusted Execution Environment (TEE)** on Nosana's decentralized GPU network, and routing through Solana — so inference is both private and verifiable.
+
+---
+
+## ✨ Features
+
+### Risk Intelligence
+- **Risk Score (0–100)** — quantitative score with animated gauge
+- **5-Dimension Radar Chart** — Liquidity, Concentration, Activity, Security, Reliability
+- **3-Traffic-Light Health Card** — instant visual summary at the top
+- **Smart Alert Banners** — dynamic warnings for approvals, rug tokens, dust, zero SOL
+- **Dimension Tooltips** — hover any bar for plain-English explanation
+
+### Token Analysis
+- **RugCheck Integration** — every SPL token scanned via [rugcheck.xyz](https://rugcheck.xyz) — GOOD / WARN / DANGER per token
+- **Live USD Values** — via Jupiter Price API
+- **Dust Token Detection** — flags potential scam airdrops
+- **Net Worth Banner** — total portfolio value in USD
+
+### Security
+- **Token Approval Auditor** — lists every delegated token approval with spender address and amount
+- **Protocol Detection** — identifies interactions with Marinade, Jupiter, Orca, Raydium, Solend, and more
+- **Known Exploit Flagging** — warns if wallet holds tokens from known hacked protocols
+
+### Wallet Intelligence
+- **Transaction History** — last 10 txs with status, timestamp, live explorer links
+- **Wallet Age & Activity Score** — on-chain history depth analysis
+- **Failed Transaction Rate** — reliability risk dimension
+
+### UX & Export
+- **Compare Two Wallets** — full side-by-side comparison with stats table, flags, tokens, dimensions
+- **Export TXT Report** — full report as downloadable text file
+- **Export CSV** — token holdings with RugCheck scores for tax/records
+- **Shareable URL** — pre-load any wallet via `?wallet=...`
+- **Recent Scans** — session-based quick-access chips (per browser session, private)
+- **Light / Dark Mode** — full theme support
+- **Fully Responsive** — works on all screen sizes from 375px to desktop
+
+### Inference Architecture
+3-tier fallback system — always get live results:
+```
+1️⃣  SolRouter  →  Encrypted TEE inference via Nosana (primary)
+2️⃣  Groq       →  Free Llama 3.1 fallback (14,400 req/day free)
+3️⃣  Claude     →  Optional Anthropic fallback
+4️⃣  On-device  →  Always works — uses real on-chain data
+```
 
 ---
 
@@ -40,6 +71,7 @@ SolRouter solves this by encrypting your query before it leaves your device, pro
 ### Prerequisites
 - Node.js v18+
 - SolRouter account → [solrouter.com](https://solrouter.com)
+- Free Groq key → [console.groq.com](https://console.groq.com) (no credit card)
 - Free devnet USDC → [faucet.circle.com](https://faucet.circle.com) (select Solana Devnet)
 
 ### Install
@@ -56,22 +88,27 @@ npm install
 cp .env.example .env
 ```
 
-Edit `.env`:
+Edit `.env` with your real keys:
 
 ```env
 SOLROUTER_API_KEY=sk_solrouter_YOURKEYHERE
+GROQ_API_KEY=gsk_YOURKEYHERE
+ANTHROPIC_API_KEY=sk-ant-YOURKEYHERE
 SOLANA_RPC_URL=https://api.devnet.solana.com
 WALLET_ADDRESS=YOUR_SOLANA_WALLET_ADDRESS
 ```
 
-### Run Web UI (recommended)
+> ⚠️ Never commit your `.env` file. It is already in `.gitignore`.
+
+### Run
 
 ```bash
 npm start
 ```
+
 Open **http://localhost:3000** in your browser.
 
-### Run CLI (terminal only)
+### CLI Mode (terminal only)
 
 ```bash
 npm run scan
@@ -87,11 +124,14 @@ solrouter-defi-scanner/
 ├── index.js         ← CLI runner
 ├── portfolio.js     ← Solana on-chain data fetcher
 │                      (SOL balance, SPL tokens, txs, protocol detection)
-├── analyzer.js      ← SolRouter encrypted inference + risk scoring engine
+├── analyzer.js      ← 3-tier inference: SolRouter → Groq → Claude → On-device
+├── rugcheck.js      ← RugCheck.xyz token contract scanner
+├── approvals.js     ← Token delegation approval checker
 ├── prices.js        ← Jupiter Price API for live USD token values
 ├── public/
 │   └── index.html   ← Full web dashboard (single file, no framework)
-├── .env.example     ← Environment variables template
+├── .env             ← Your real keys (never commit this)
+├── .env.example     ← Template for setup
 └── README.md
 ```
 
@@ -101,11 +141,11 @@ solrouter-defi-scanner/
 
 ```
 POST /api/scan
-  Body: { wallet: string }
-  Returns: { portfolio, report }
+  Body:    { wallet: string }
+  Returns: { portfolio, report, approvals }
 
 POST /api/compare
-  Body: { walletA: string, walletB: string }
+  Body:    { walletA: string, walletB: string }
   Returns: { a: { portfolio, report }, b: { portfolio, report } }
 
 GET /api/health
@@ -114,43 +154,48 @@ GET /api/health
 
 ---
 
-## 📸 Demo Output
+## 🔒 How Encryption Works
 
 ```
-╔══════════════════════════════════════════════╗
-║  🔐 SolRouter DeFi Portfolio Risk Scanner    ║
-╚══════════════════════════════════════════════╝
-
-Risk Score:  61 / 100
-Risk Level:  MEDIUM
-
-SOL Balance: 0.0000 SOL
-Tokens:      1 SPL token(s)
-Txs:         3 (0 failed)
-Wallet Age:  5 days
-
-Risk Flags:
-  • Zero SOL balance — wallet cannot pay transaction fees
-  • Single active token — high concentration risk
-  • Low transaction history — wallet is relatively new
-
-Recommendations:
-  • Fund wallet with at least 0.05 SOL to cover network fees
-  • Spread across 3–5 assets to reduce concentration risk
-  • Build on-chain history before committing significant capital
-
-✅ Analysis complete — encrypted via SolRouter
+1. Client-side     → Wallet data composed into analysis prompt
+2. SolRouter SDK   → Prompt encrypted before leaving your device
+3. Nosana Network  → Processed inside TEE (Trusted Execution Environment)
+4. Solana          → Results routed through decentralized infrastructure
+5. Zero logs       → No centralized server ever sees your raw query
 ```
 
 ---
 
-## 🔒 How Encryption Works
+## 📸 Demo
 
-1. **Client-side** — Your wallet data is composed into a prompt
-2. **SolRouter SDK** — Prompt is encrypted before leaving your device
-3. **Nosana Network** — Processed inside a TEE (Trusted Execution Environment)
-4. **Solana** — Results routed through decentralized infrastructure
-5. **Zero logs** — No centralized server ever sees your raw query
+```
+╔══════════════════════════════════════════╗
+║  🔐 SolRouter DeFi Risk Scanner v2.1    ║
+╚══════════════════════════════════════════╝
+
+   SolRouter attempt 1/2...
+   ⏳ Cold start — retrying in 8s...
+   SolRouter attempt 2/2...
+   Trying Groq API fallback...
+   ✅ Groq API fallback successful
+
+Risk Score:    61 / 100      Risk Level: MEDIUM
+Net Worth:     $0.42 USD
+SOL Balance:   0.0000 SOL   Wallet Age:  5 days
+Active Tokens: 1             Transactions: 3
+
+🚩 Risk Flags:
+   • Zero SOL balance — cannot pay transaction fees
+   • Single active token — high concentration risk
+   • Low transaction history — wallet relatively new
+
+💡 Recommendations:
+   • Fund wallet with at least 0.05 SOL for gas fees
+   • Spread across 3–5 assets to reduce concentration
+   • Build on-chain history before committing capital
+
+✅ Analysis complete — 3-tier encrypted inference
+```
 
 ---
 
@@ -160,9 +205,11 @@ Recommendations:
 - [SolRouter Docs](https://www.solrouter.com/docs)
 - [SolRouter on X](https://x.com/SolRouterAI)
 - [SolRouter Telegram](https://t.me/+uEgTRV5CivVmYTRi)
-- [Nosana Network](https://nosana.io)
+- [Nosana Network](https://nosana.io) — Decentralized GPU compute
+- [Groq Console](https://console.groq.com) — Free AI inference
+- [RugCheck](https://rugcheck.xyz) — Solana token security
+- [Jupiter Price API](https://price.jup.ag) — Token prices
 - [Circle Faucet](https://faucet.circle.com) — Free devnet USDC
-- [Jupiter Price API](https://price.jup.ag)
 
 ---
 

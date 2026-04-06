@@ -291,6 +291,25 @@ h1{font-size:clamp(34px,6vw,62px);font-weight:900;line-height:1.0;letter-spacing
 .social-chip:hover{border-color:var(--border2);color:var(--accent);background:rgba(0,240,160,0.05);}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── WALLET CONNECT ── */
+.wallet-bar{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border3);border-radius:var(--rl);padding:14px 20px;margin-bottom:20px;animation:fadeUp 0.5s ease both;}
+.wallet-bar.connected{border-color:var(--border2);background:rgba(0,240,160,0.04);}
+.wallet-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.wallet-info{flex:1;min-width:0;}
+.wallet-name{font-size:13px;font-weight:600;color:var(--text);}
+.wallet-addr{font-family:var(--mono);font-size:11px;color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.wallet-connect-btn{background:var(--accent);color:#000;border:none;border-radius:var(--r);padding:9px 18px;font-family:var(--body);font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;white-space:nowrap;flex-shrink:0;}
+.wallet-connect-btn:hover{opacity:0.88;box-shadow:0 4px 16px rgba(0,240,160,0.3);}
+.wallet-connect-btn.disconnect{background:transparent;border:1px solid var(--border3);color:var(--muted2);font-weight:400;}
+.wallet-connect-btn.disconnect:hover{border-color:var(--danger);color:var(--danger);box-shadow:none;}
+.wallet-select{display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--card);border:1px solid var(--border2);border-radius:var(--rl);padding:10px;z-index:100;min-width:220px;box-shadow:0 8px 32px rgba(0,0,0,0.3);}
+.wallet-select.open{display:block;}
+.wallet-option{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r);cursor:pointer;transition:background 0.15s;font-size:14px;}
+.wallet-option:hover{background:rgba(0,240,160,0.08);}
+.wallet-option img{width:28px;height:28px;border-radius:8px;}
+.wallet-wrap{position:relative;}
+.not-connected-msg{font-family:var(--mono);font-size:11px;color:var(--muted2);}
 @keyframes countUp{from{opacity:0}to{opacity:1}}
 
 /* ── RESPONSIVE ── */
@@ -340,6 +359,32 @@ h1{font-size:clamp(34px,6vw,62px);font-weight:900;line-height:1.0;letter-spacing
     <button class="nav-btn" id="theme-btn" onclick="toggleTheme()">☀ Light</button>
   </div>
 </nav>
+
+<!-- WALLET CONNECT BAR -->
+<div class="wallet-bar" id="wallet-bar">
+  <div class="wallet-avatar" id="wallet-avatar">🔓</div>
+  <div class="wallet-info">
+    <div class="wallet-name" id="wallet-name">Connect your wallet</div>
+    <div class="wallet-addr not-connected-msg" id="wallet-addr">Connect to save scan history across browsers &amp; sessions</div>
+  </div>
+  <div class="wallet-wrap">
+    <button class="wallet-connect-btn" id="wallet-connect-btn" onclick="toggleWalletMenu()">Connect Wallet</button>
+    <div class="wallet-select" id="wallet-select">
+      <div class="wallet-option" onclick="connectWallet('phantom')">
+        <img src="https://phantom.app/img/phantom-logo.png" onerror="this.style.display='none'" alt=""/>
+        <span>Phantom</span>
+      </div>
+      <div class="wallet-option" onclick="connectWallet('solflare')">
+        <img src="https://solflare.com/assets/logo.svg" onerror="this.style.display='none'" alt=""/>
+        <span>Solflare</span>
+      </div>
+      <div class="wallet-option" onclick="connectWallet('backpack')">
+        <span style="font-size:22px">🎒</span>
+        <span>Backpack</span>
+      </div>
+    </div>
+  </div>
+</div>
 
 <section class="hero">
   <div class="eyebrow"><div class="pulse"></div>Encrypted Inference · SolRouter + Nosana Network</div>
@@ -487,7 +532,7 @@ h1{font-size:clamp(34px,6vw,62px);font-weight:900;line-height:1.0;letter-spacing
 
   <div class="rpanel" id="tab-tokens">
     <div class="tbl-wrap"><table class="tbl">
-      <thead><tr><th>Token Mint</th><th>Balance</th><th>USD Value</th><th>RugCheck</th><th>Status</th></tr></thead>
+      <thead><tr><th>Token</th><th>Balance</th><th>USD Value</th><th>RugCheck</th><th>Status</th></tr></thead>
       <tbody id="tokens-tbody"></tbody>
     </table></div>
   </div>
@@ -631,40 +676,144 @@ function setStep(n){
   });
 }
 
-// ── HISTORY ──────────────────────────────────
-function getH(){try{return JSON.parse(sessionStorage.getItem('sr_h')||'[]');}catch(e){return[];}}
-function saveHistory(wallet,score,level){
-  var h=getH().filter(function(x){return x.wallet!==wallet;});
-  h.unshift({wallet:wallet,score:score,level:level});
-  try{sessionStorage.setItem('sr_h',JSON.stringify(h.slice(0,6)));}catch(e){}
+// ── WALLET CONNECT ──────────────────────────────────────────
+var connectedWallet = null;
+var connectedWalletName = null;
+
+function storageKey() {
+  return connectedWallet ? 'sr_h_' + connectedWallet : 'sr_h_guest';
+}
+
+function toggleWalletMenu() {
+  var sel = document.getElementById('wallet-select');
+  if (connectedWallet) {
+    disconnectWallet();
+    return;
+  }
+  sel.classList.toggle('open');
+}
+
+// Close menu when clicking outside
+document.addEventListener('click', function(e) {
+  var wrap = document.querySelector('.wallet-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    var sel = document.getElementById('wallet-select');
+    if (sel) sel.classList.remove('open');
+  }
+});
+
+async function connectWallet(provider) {
+  document.getElementById('wallet-select').classList.remove('open');
+  try {
+    var wallet = null;
+    if (provider === 'phantom') wallet = window.phantom?.solana || window.solana;
+    if (provider === 'solflare') wallet = window.solflare;
+    if (provider === 'backpack') wallet = window.backpack?.solana || window.xnft?.solana;
+
+    if (!wallet) {
+      var urls = {
+        phantom: 'https://phantom.app',
+        solflare: 'https://solflare.com',
+        backpack: 'https://backpack.app'
+      };
+      var names = { phantom: 'Phantom', solflare: 'Solflare', backpack: 'Backpack' };
+      if (confirm(names[provider] + ' wallet not found. Install it?')) {
+        window.open(urls[provider], '_blank');
+      }
+      return;
+    }
+
+    var resp = await wallet.connect();
+    var pubkey = resp.publicKey.toString();
+    connectedWallet = pubkey;
+    connectedWalletName = provider.charAt(0).toUpperCase() + provider.slice(1);
+    updateWalletBar(pubkey, connectedWalletName);
+    renderChips();
+  } catch (err) {
+    console.log('Wallet connect error:', err.message);
+    showErr('Wallet connection cancelled or failed.');
+  }
+}
+
+function disconnectWallet() {
+  connectedWallet = null;
+  connectedWalletName = null;
+  updateWalletBar(null, null);
   renderChips();
 }
-function clearHistory(){try{sessionStorage.removeItem('sr_h');}catch(e){}renderChips();}
-function renderChips(){
-  var row=document.getElementById('recent-row');
-  var wrap=document.getElementById('recent-chips');
-  if(!row||!wrap) return;
-  var h=getH();
-  if(!h.length){row.style.display='none';return;}
-  row.style.display='block';
-  var clr={LOW:'#00f0a0',MEDIUM:'#f59e0b',HIGH:'#ff3d3d'};
-  var out='';
-  for(var i=0;i<h.length;i++){
-    var it=h[i];
-    var c=clr[it.level]||'#6b7a94';
-    var w=it.wallet.slice(0,4)+'...'+it.wallet.slice(-4);
-    out+='<div onclick="loadRecent(this)" data-wallet="'+it.wallet+'" style="display:flex;align-items:center;gap:6px;cursor:pointer;background:var(--surface);border:1px solid var(--border3);border-radius:8px;padding:5px 10px;font-family:var(--mono);font-size:11px;color:var(--muted2);transition:border-color 0.2s" onmouseover="this.style.borderColor=\'rgba(0,240,160,0.22)\'" onmouseout="this.style.borderColor=\'rgba(255,255,255,0.06)\'">'
-      +'<span style="color:'+c+';font-weight:700">'+it.score+'</span>'
-      +'<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:rgba(0,0,0,0.2);color:'+c+'">'+it.level+'</span>'
-      +'<span>'+w+'</span></div>';
+
+function updateWalletBar(pubkey, name) {
+  var bar = document.getElementById('wallet-bar');
+  var avatar = document.getElementById('wallet-avatar');
+  var wname = document.getElementById('wallet-name');
+  var addr = document.getElementById('wallet-addr');
+  var btn = document.getElementById('wallet-connect-btn');
+
+  if (pubkey) {
+    bar.classList.add('connected');
+    avatar.textContent = '🔐';
+    wname.textContent = name + ' connected';
+    addr.textContent = pubkey.slice(0,6) + '…' + pubkey.slice(-6) + '  ·  History saved to this wallet';
+    addr.classList.remove('not-connected-msg');
+    addr.style.color = 'var(--accent)';
+    btn.textContent = 'Disconnect';
+    btn.className = 'wallet-connect-btn disconnect';
+  } else {
+    bar.classList.remove('connected');
+    avatar.textContent = '🔓';
+    wname.textContent = 'Connect your wallet';
+    addr.textContent = 'Connect to save scan history across browsers & sessions';
+    addr.classList.add('not-connected-msg');
+    addr.style.color = '';
+    btn.textContent = 'Connect Wallet';
+    btn.className = 'wallet-connect-btn';
   }
-  wrap.innerHTML=out;
 }
-function loadRecent(el){
-  document.getElementById('w1').value=el.dataset.wallet;
+
+// ── HISTORY ──────────────────────────────────
+function getH() {
+  try { return JSON.parse(localStorage.getItem(storageKey()) || '[]'); } catch(e) { return []; }
+}
+
+function saveHistory(wallet, score, level) {
+  var h = getH().filter(function(x) { return x.wallet !== wallet; });
+  h.unshift({ wallet: wallet, score: score, level: level, time: Date.now() });
+  try { localStorage.setItem(storageKey(), JSON.stringify(h.slice(0, 8))); } catch(e) {}
+  renderChips();
+}
+
+function clearHistory() {
+  try { localStorage.removeItem(storageKey()); } catch(e) {}
+  renderChips();
+}
+
+function renderChips() {
+  var row  = document.getElementById('recent-row');
+  var wrap = document.getElementById('recent-chips');
+  if (!row || !wrap) return;
+  var h = getH();
+  if (!h.length) { row.style.display = 'none'; return; }
+  row.style.display = 'block';
+  var clr = { LOW:'#00f0a0', MEDIUM:'#f59e0b', HIGH:'#ff3d3d' };
+  var out = '';
+  for (var i = 0; i < h.length; i++) {
+    var it = h[i];
+    var c  = clr[it.level] || '#6b7a94';
+    var w  = it.wallet.slice(0,4) + '...' + it.wallet.slice(-4);
+    out += '<div onclick="loadRecent(this)" data-wallet="' + it.wallet + '" style="display:flex;align-items:center;gap:6px;cursor:pointer;background:var(--surface);border:1px solid var(--border3);border-radius:8px;padding:5px 10px;font-family:var(--mono);font-size:11px;color:var(--muted2);transition:border-color 0.2s" onmouseover="this.style.borderColor=this.dataset.hc" onmouseout="this.style.borderColor=this.dataset.oc" data-hc="rgba(0,240,160,0.22)" data-oc="rgba(255,255,255,0.06)">'
+         + '<span style="color:' + c + ';font-weight:700">' + it.score + '</span>'
+         + '<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:rgba(0,0,0,0.2);color:' + c + '">' + it.level + '</span>'
+         + '<span>' + w + '</span></div>';
+  }
+  wrap.innerHTML = out;
+}
+
+function loadRecent(el) {
+  document.getElementById('w1').value = el.dataset.wallet;
   setMode('single');
   runScan();
 }
+
 
 // ── SCAN ──────────────────────────────────────
 async function runScan(){
@@ -835,15 +984,24 @@ function renderResults(p,r,approvals){
     tbody.innerHTML=toks.map(function(t){
       var isDust=t.balance>0&&t.balance<0.001;
       var rc=t.rugcheck;
-      var rcBadge='<span class="rug-badge muted">Scanning...</span>';
-      if(rc){
-        var bc=rc.verdict==='GOOD'?'good':rc.verdict==='WARN'?'warn':rc.verdict==='DANGER'?'danger':'muted';
-        var name=rc.name?rc.name+' ('+rc.symbol+')':'—';
-        rcBadge='<span class="rug-badge '+bc+'">'+rc.verdict+' '+rc.score+'</span>';
+      var meta=t.meta;
+      var rcBadge=rc?'<span class="rug-badge '+(rc.verdict==='GOOD'?'good':rc.verdict==='WARN'?'warn':rc.verdict==='DANGER'?'danger':'muted')+'">'+rc.verdict+(rc.score?' '+rc.score:'')+'</span>':'<span class="rug-badge muted">—</span>';
+      var tokenCell;
+      if(meta){
+        tokenCell='<div style="display:flex;align-items:center;gap:8px">'
+          +'<div style="width:9px;height:9px;border-radius:50%;background:'+meta.color+';flex-shrink:0"></div>'
+          +'<div><div style="font-size:13px;font-weight:600">'+meta.symbol+'</div>'
+          +'<div style="font-family:var(--mono);font-size:10px;color:var(--muted2)">'+meta.name+'</div></div></div>'
+          +(isDust?'<span class="dust-b">DUST</span>':'');
+      } else {
+        var sym=rc&&rc.symbol?rc.symbol:t.mint.slice(0,6)+'…'+t.mint.slice(-4);
+        tokenCell='<div><div style="font-family:var(--mono);font-size:12px">'+sym+'</div>'
+          +'<div style="font-family:var(--mono);font-size:10px;color:var(--muted2)">'+t.mint.slice(0,6)+'…'+t.mint.slice(-4)+'</div></div>'
+          +(isDust?'<span class="dust-b">DUST</span>':'');
       }
-      return '<tr><td class="mint-c">'+t.mint.slice(0,8)+'…'+t.mint.slice(-6)+(isDust?'<span class="dust-b">DUST</span>':'')+'</td>'
+      return '<tr><td>'+tokenCell+'</td>'
         +'<td class="bal-c">'+(t.balance!==null?t.balance.toFixed(4):0)+'</td>'
-        +'<td class="usd-c">'+(t.usdValue>0?'$'+t.usdValue.toFixed(4):'—')+'</td>'
+        +'<td class="usd-c">'+(t.usdValue>0?'$'+t.usdValue.toFixed(2):'—')+'</td>'
         +'<td>'+rcBadge+'</td>'
         +'<td><span style="font-family:var(--mono);font-size:11px;color:'+(t.balance>0?'var(--accent)':'var(--muted)')+'">'+( t.balance>0?'Active':'Empty')+'</span></td></tr>';
     }).join('');

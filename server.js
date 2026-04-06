@@ -5,7 +5,7 @@ const express = require('express');
 const path = require('path');
 const { fetchPortfolio } = require('./portfolio');
 const { analyzePortfolio } = require('./analyzer');
-const { fetchTokenPrices, SOL_MINT } = require('./prices');
+const { fetchTokenPrices, SOL_MINT, KNOWN_TOKENS } = require('./prices');
 const { scanAllTokens } = require('./rugcheck');
 const { fetchApprovals } = require('./approvals');
 
@@ -43,6 +43,7 @@ app.post('/api/scan', async (req, res) => {
       usdPrice: prices[t.mint] || 0,
       usdValue: (prices[t.mint] || 0) * (t.balance || 0),
       rugcheck: rugResults[t.mint] || null,
+      meta: KNOWN_TOKENS.get(t.mint) || null,
     }));
 
     const totalUsd = (solPrice * portfolio.solBalance) +
