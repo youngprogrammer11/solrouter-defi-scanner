@@ -293,14 +293,9 @@ h1{font-size:clamp(34px,6vw,62px);font-weight:900;line-height:1.0;letter-spacing
 @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 
 /* ── WALLET CONNECT ── */
-.wallet-bar{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border3);border-radius:var(--rl);padding:14px 20px;margin-bottom:20px;animation:fadeUp 0.5s ease both;}
-.wallet-bar.connected{border-color:var(--border2);background:rgba(0,240,160,0.04);}
-.wallet-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
-.wallet-info{flex:1;min-width:0;}
-.wallet-name{font-size:13px;font-weight:600;color:var(--text);}
-.wallet-addr{font-family:var(--mono);font-size:11px;color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.wallet-connect-btn{background:var(--accent);color:#000;border:none;border-radius:var(--r);padding:9px 18px;font-family:var(--body);font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;white-space:nowrap;flex-shrink:0;}
-.wallet-connect-btn:hover{opacity:0.88;box-shadow:0 4px 16px rgba(0,240,160,0.3);}
+
+.wallet-connect-btn{background:rgba(0,240,160,0.1);color:var(--accent);border:1px solid var(--border2);border-radius:100px;padding:6px 14px;font-family:var(--mono);font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s;white-space:nowrap;flex-shrink:0;letter-spacing:0.04em;}
+.wallet-connect-btn:hover{background:rgba(0,240,160,0.18);box-shadow:0 0 12px rgba(0,240,160,0.2);}
 .wallet-connect-btn.disconnect{background:transparent;border:1px solid var(--border3);color:var(--muted2);font-weight:400;}
 .wallet-connect-btn.disconnect:hover{border-color:var(--danger);color:var(--danger);box-shadow:none;}
 .wallet-select{display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--card);border:1px solid var(--border2);border-radius:var(--rl);padding:10px;z-index:100;min-width:220px;box-shadow:0 8px 32px rgba(0,0,0,0.3);}
@@ -357,34 +352,26 @@ h1{font-size:clamp(34px,6vw,62px);font-weight:900;line-height:1.0;letter-spacing
   <div class="nav-left"><div class="live-dot"></div><div class="nav-logo">SOLROUTER · RISK INTELLIGENCE</div></div>
   <div class="nav-right">
     <button class="nav-btn" id="theme-btn" onclick="toggleTheme()">☀ Light</button>
-  </div>
-</nav>
-
-<!-- WALLET CONNECT BAR -->
-<div class="wallet-bar" id="wallet-bar">
-  <div class="wallet-avatar" id="wallet-avatar">🔓</div>
-  <div class="wallet-info">
-    <div class="wallet-name" id="wallet-name">Connect your wallet</div>
-    <div class="wallet-addr not-connected-msg" id="wallet-addr">Connect to save scan history across browsers &amp; sessions</div>
-  </div>
-  <div class="wallet-wrap">
-    <button class="wallet-connect-btn" id="wallet-connect-btn" onclick="toggleWalletMenu()">Connect Wallet</button>
-    <div class="wallet-select" id="wallet-select">
-      <div class="wallet-option" onclick="connectWallet('phantom')">
-        <img src="https://phantom.app/img/phantom-logo.png" onerror="this.style.display='none'" alt=""/>
-        <span>Phantom</span>
-      </div>
-      <div class="wallet-option" onclick="connectWallet('solflare')">
-        <img src="https://solflare.com/assets/logo.svg" onerror="this.style.display='none'" alt=""/>
-        <span>Solflare</span>
-      </div>
-      <div class="wallet-option" onclick="connectWallet('backpack')">
-        <span style="font-size:22px">🎒</span>
-        <span>Backpack</span>
+    <div class="wallet-wrap">
+      <button class="wallet-connect-btn" id="wallet-connect-btn" onclick="toggleWalletMenu()">🔓 Connect Wallet</button>
+      <div class="wallet-select" id="wallet-select">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);padding:8px 12px;letter-spacing:0.08em;text-transform:uppercase;border-bottom:1px solid var(--border3);margin-bottom:4px">Select Wallet</div>
+        <div class="wallet-option" onclick="connectWallet('phantom')">
+          <img src="https://phantom.app/img/phantom-logo.png" onerror="this.style.display='none'" alt="" style="width:24px;height:24px;border-radius:6px"/>
+          <span>Phantom</span>
+        </div>
+        <div class="wallet-option" onclick="connectWallet('solflare')">
+          <img src="https://solflare.com/assets/logo.svg" onerror="this.style.display='none'" alt="" style="width:24px;height:24px;border-radius:6px"/>
+          <span>Solflare</span>
+        </div>
+        <div class="wallet-option" onclick="connectWallet('backpack')">
+          <span style="font-size:20px">🎒</span>
+          <span>Backpack</span>
+        </div>
       </div>
     </div>
   </div>
-</div>
+</nav>
 
 <section class="hero">
   <div class="eyebrow"><div class="pulse"></div>Encrypted Inference · SolRouter + Nosana Network</div>
@@ -635,7 +622,6 @@ h1{font-size:clamp(34px,6vw,62px);font-weight:900;line-height:1.0;letter-spacing
     <a href="https://www.solrouter.com/docs" target="_blank" class="social-chip">📄 Docs</a>
     <a href="https://nosana.io" target="_blank" class="social-chip">⚡ Nosana</a>
     <a href="https://solana.com" target="_blank" class="social-chip">◎ Solana</a>
-    <a href="https://thearcadia.netlify.app/" target="_blank" class="social-chip">🎮 Arcadia</a>
   </div>
 </footer>
 </div>
@@ -743,30 +729,15 @@ function disconnectWallet() {
 }
 
 function updateWalletBar(pubkey, name) {
-  var bar = document.getElementById('wallet-bar');
-  var avatar = document.getElementById('wallet-avatar');
-  var wname = document.getElementById('wallet-name');
-  var addr = document.getElementById('wallet-addr');
   var btn = document.getElementById('wallet-connect-btn');
-
   if (pubkey) {
-    bar.classList.add('connected');
-    avatar.textContent = '🔐';
-    wname.textContent = name + ' connected';
-    addr.textContent = pubkey.slice(0,6) + '…' + pubkey.slice(-6) + '  ·  History saved to this wallet';
-    addr.classList.remove('not-connected-msg');
-    addr.style.color = 'var(--accent)';
-    btn.textContent = 'Disconnect';
+    btn.textContent = '🔐 ' + pubkey.slice(0,4) + '…' + pubkey.slice(-4);
     btn.className = 'wallet-connect-btn disconnect';
+    btn.title = name + ' connected: ' + pubkey + ' · Click to disconnect';
   } else {
-    bar.classList.remove('connected');
-    avatar.textContent = '🔓';
-    wname.textContent = 'Connect your wallet';
-    addr.textContent = 'Connect to save scan history across browsers & sessions';
-    addr.classList.add('not-connected-msg');
-    addr.style.color = '';
-    btn.textContent = 'Connect Wallet';
+    btn.textContent = '🔓 Connect Wallet';
     btn.className = 'wallet-connect-btn';
+    btn.title = 'Connect wallet to save scan history';
   }
 }
 
