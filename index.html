@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SolRouter — DeFi Risk Intelligence</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJzZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMwMGYwYTAiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwMDgwZmYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHJ4PSI4IiBmaWxsPSIjMDQwNTBkIi8+PHBhdGggZD0iTTE2IDMgTDI3IDcuNSBWMTUuNSBDMjcgMjEuNSAyMiAyNi41IDE2IDI5IEMxMCAyNi41IDUgMjEuNSA1IDE1LjUgVjcuNSBaIiBmaWxsPSJub25lIiBzdHJva2U9InVybCgjc2cpIiBzdHJva2Utd2lkdGg9IjEuOCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxyZWN0IHg9IjEyIiB5PSIxNSIgd2lkdGg9IjgiIGhlaWdodD0iNiIgcng9IjEuNSIgZmlsbD0iIzAwZjBhMCIvPjxwYXRoIGQ9Ik0xMy41IDE1IFYxMyBBMi41IDIuNSAwIDAgMSAxOC41IDEzIFYxNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDBmMGEwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PGNpcmNsZSBjeD0iMTYiIGN5PSIxOCIgcj0iMSIgZmlsbD0iIzA0MDUwZCIvPjwvc3ZnPg=="/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#04050d;--surface:#080d1a;--card:#0c1220;
+  --border:rgba(0,240,160,0.1);--border2:rgba(0,240,160,0.22);--border3:rgba(255,255,255,0.06);--border4:rgba(255,255,255,0.1);
+  --text:#e8edf5;--muted:#4a5568;--muted2:#6b7a94;
+  --accent:#00f0a0;--accent2:#0080ff;--danger:#ff3d3d;--warn:#f59e0b;--purple:#7c3aed;
+  --mono:'Space Mono',monospace;--body:'Outfit',sans-serif;
+  --r:14px;--rl:20px;--rxl:24px;
+}
+[data-theme="light"]{--bg:#f0f4f8;--surface:#fff;--card:#fff;--border3:rgba(0,0,0,0.07);--border4:rgba(0,0,0,0.12);--text:#0f1628;--muted:#94a3b8;--muted2:#64748b;}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:100vh;overflow-x:hidden;transition:background 0.3s,color 0.3s;}
+.bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+[data-theme="light"] .bg-layer{opacity:0.3;}
+.bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,240,160,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,240,160,0.04) 1px,transparent 1px);background-size:60px 60px;}
+.bg-g1{position:absolute;top:-20%;left:-10%;width:600px;height:600px;background:radial-gradient(circle,rgba(0,240,160,0.08) 0%,transparent 70%);animation:drift1 20s ease-in-out infinite alternate;}
+.bg-g2{position:absolute;bottom:-20%;right:-10%;width:700px;height:700px;background:radial-gradient(circle,rgba(0,128,255,0.07) 0%,transparent 70%);animation:drift2 25s ease-in-out infinite alternate;}
+@keyframes drift1{from{transform:translate(0,0)}to{transform:translate(60px,40px)}}
+@keyframes drift2{from{transform:translate(0,0)}to{transform:translate(-50px,-30px)}}
+.wrap{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:0 24px 100px;}
+nav{display:flex;align-items:center;justify-content:space-between;padding:22px 0;border-bottom:1px solid var(--border3);margin-bottom:56px;gap:12px;flex-wrap:wrap;}
+.nav-left{display:flex;align-items:center;gap:10px;}
+.nav-logo{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent);letter-spacing:0.05em;}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:blink 2s ease infinite;flex-shrink:0;}
+.nav-right{display:flex;align-items:center;gap:8px;}
+.nav-btn{font-family:var(--mono);font-size:11px;background:var(--card);border:1px solid var(--border3);border-radius:100px;padding:6px 13px;color:var(--muted2);cursor:pointer;transition:all 0.2s;letter-spacing:0.04em;}
+.nav-btn:hover,.nav-btn.on{border-color:var(--border2);color:var(--accent);background:rgba(0,240,160,0.06);}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.35}}
+.hero{text-align:center;margin-bottom:44px;animation:fadeUp 0.7s ease both;}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(0,240,160,0.06);border:1px solid var(--border2);border-radius:100px;padding:7px 18px;font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:24px;}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--accent);position:relative;}
+.pulse::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:1px solid var(--accent);animation:ring 2s ease infinite;}
+@keyframes ring{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(2.5)}}
+h1{font-size:clamp(34px,6vw,62px);font-weight:900;line-height:1.0;letter-spacing:-0.03em;margin-bottom:18px;}
+.g{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{font-size:16px;color:var(--muted2);line-height:1.7;max-width:500px;margin:0 auto;}
+.strip{display:flex;border:1px solid var(--border3);border-radius:var(--rl);overflow:hidden;margin-bottom:44px;animation:fadeUp 0.7s 0.08s ease both;}
+.strip-item{flex:1;padding:16px 18px;text-align:center;border-right:1px solid var(--border3);}
+.strip-item:last-child{border-right:none;}
+.strip-num{font-size:17px;font-weight:700;color:var(--accent);font-family:var(--mono);margin-bottom:3px;}
+.strip-lbl{font-size:10px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;font-family:var(--mono);}
+.mode-tabs{display:flex;gap:8px;margin-bottom:16px;animation:fadeUp 0.7s 0.12s ease both;}
+.mtab{flex:1;padding:11px;border:1px solid var(--border3);border-radius:var(--r);font-family:var(--mono);font-size:12px;color:var(--muted2);cursor:pointer;text-align:center;transition:all 0.2s;background:var(--card);}
+.mtab.on{border-color:var(--border2);color:var(--accent);background:rgba(0,240,160,0.06);}
+.scanner{background:var(--card);border:1px solid var(--border2);border-radius:var(--rxl);overflow:hidden;margin-bottom:20px;animation:fadeUp 0.7s 0.15s ease both;position:relative;}
+.scanner::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);}
+.s-head{display:flex;align-items:center;gap:7px;padding:13px 20px;border-bottom:1px solid var(--border3);background:var(--surface);}
+.dr{width:11px;height:11px;border-radius:50%;background:#ff5f57;flex-shrink:0;}
+.dy{width:11px;height:11px;border-radius:50%;background:#febc2e;flex-shrink:0;}
+.dg{width:11px;height:11px;border-radius:50%;background:#28c840;flex-shrink:0;}
+.s-title{font-family:var(--mono);font-size:11px;color:var(--muted2);margin-left:8px;}
+.s-body{padding:26px;}
+.ilbl{font-family:var(--mono);font-size:10px;color:var(--muted2);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;display:block;}
+.wi{background:var(--surface);border:1px solid var(--border4);border-radius:var(--r);padding:13px 16px;font-family:var(--mono);font-size:13px;color:var(--text);outline:none;transition:border-color 0.2s,box-shadow 0.2s;width:100%;}
+.wi:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,240,160,0.08);}
+.wi::placeholder{color:var(--muted);}
+#single-row{margin-bottom:10px;}
+.compare-inputs{display:none;gap:12px;margin-top:16px;padding-top:18px;padding-bottom:8px;border-top:1px solid var(--border3);}
+.compare-inputs.on{display:flex;}
+.cc{flex:1;min-width:0;}
+.cc .wi{width:100%;}
+.clbl{font-family:var(--mono);font-size:10px;color:var(--muted2);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;}
+.scan-btn{background:var(--accent);color:#000;border:none;border-radius:var(--r);padding:14px 28px;font-family:var(--body);font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-top:18px;margin-bottom:14px;transition:all 0.2s;}
+.scan-btn:hover{opacity:0.88;box-shadow:0 8px 24px rgba(0,240,160,0.3);}
+.scan-btn:active{transform:scale(0.98);}
+.scan-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none;}
+.hint-row{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--muted);flex-wrap:wrap;}
+.chip{background:rgba(0,240,160,0.06);border:1px solid var(--border);border-radius:6px;padding:2px 8px;color:var(--accent);font-size:10px;}
+.recent-row{display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border3);}
+.recent-hdr{font-family:var(--mono);font-size:10px;color:var(--muted2);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+.recent-clear{cursor:pointer;color:var(--muted);font-size:10px;transition:color 0.2s;}
+.recent-clear:hover{color:var(--danger);}
+.recent-chips{display:flex;flex-wrap:wrap;gap:8px;}
+.loading{display:none;background:var(--card);border:1px solid var(--border2);border-radius:var(--rxl);padding:48px 28px;text-align:center;margin-bottom:20px;}
+.loading.on{display:block;}
+.spin-w{width:72px;height:72px;margin:0 auto 22px;position:relative;}
+.sr1{width:72px;height:72px;border-radius:50%;border:2px solid rgba(0,240,160,0.1);border-top-color:var(--accent);position:absolute;inset:0;animation:spin 0.9s linear infinite;}
+.sr2{width:50px;height:50px;border-radius:50%;border:2px solid rgba(0,128,255,0.1);border-bottom-color:var(--accent2);position:absolute;top:11px;left:11px;animation:spin 1.4s linear infinite reverse;}
+.sdot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);animation:blink 1s ease infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ltitle{font-size:17px;font-weight:600;margin-bottom:18px;}
+.steps{display:flex;flex-direction:column;gap:6px;max-width:300px;margin:0 auto;}
+.step{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;color:var(--muted);padding:7px 12px;border-radius:8px;background:var(--surface);border:1px solid transparent;transition:all 0.3s;}
+.step.on{color:var(--text);background:rgba(0,240,160,0.05);border-color:var(--border);}
+.step.done{color:var(--accent);}
+.si{width:14px;text-align:center;flex-shrink:0;}
+.err{display:none;background:rgba(255,61,61,0.06);border:1px solid rgba(255,61,61,0.2);border-radius:var(--rl);padding:16px 20px;font-family:var(--mono);font-size:13px;color:#ff9999;margin-bottom:18px;}
+.err.on{display:block;}
+.results{display:none;}
+.results.on{display:block;}
+.cmp-results{display:none;}
+.cmp-results.on{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+
+/* ── HEALTH CARD ── */
+.health-card{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;}
+.hc{border-radius:var(--rl);padding:20px 22px;position:relative;overflow:hidden;}
+.hc.green{background:rgba(0,240,160,0.07);border:1px solid rgba(0,240,160,0.2);}
+.hc.amber{background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.2);}
+.hc.red{background:rgba(255,61,61,0.07);border:1px solid rgba(255,61,61,0.2);}
+.hc-icon{font-size:22px;margin-bottom:10px;}
+.hc-label{font-family:var(--mono);font-size:10px;color:var(--muted2);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;}
+.hc-val{font-size:26px;font-weight:900;font-family:var(--mono);letter-spacing:-0.02em;}
+.hc.green .hc-val{color:var(--accent);}
+.hc.amber .hc-val{color:var(--warn);}
+.hc.red .hc-val{color:var(--danger);}
+.hc-sub{font-size:12px;color:var(--muted2);margin-top:4px;line-height:1.4;}
+
+/* ── NET WORTH BANNER ── */
+.networth-banner{background:var(--card);border:1px solid var(--border2);border-radius:var(--rl);padding:22px 28px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:20px;position:relative;overflow:hidden;}
+.networth-banner::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);}
+.nw-left{}
+.nw-label{font-family:var(--mono);font-size:10px;color:var(--muted2);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;}
+.nw-val{font-size:42px;font-weight:900;color:var(--text);font-family:var(--mono);letter-spacing:-0.03em;line-height:1;}
+.nw-sub{font-size:13px;color:var(--muted2);margin-top:6px;}
+.nw-right{display:flex;flex-direction:column;gap:8px;text-align:right;}
+.nw-item{font-family:var(--mono);font-size:12px;color:var(--muted2);}
+.nw-item span{color:var(--text);margin-left:8px;}
+
+/* ── SCORE CARD ── */
+.score-card{background:var(--card);border:1px solid var(--border2);border-radius:var(--rxl);padding:32px;margin-bottom:14px;display:grid;grid-template-columns:auto 1fr auto;gap:36px;align-items:center;position:relative;overflow:hidden;}
+.score-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);}
+.gauge-w{position:relative;width:130px;height:130px;flex-shrink:0;}
+.g-svg{transform:rotate(-90deg);}
+.g-bg{fill:none;stroke:rgba(255,255,255,0.06);stroke-width:10;}
+.g-fill{fill:none;stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset 1.4s cubic-bezier(0.4,0,0.2,1),stroke 0.5s;}
+.g-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+.g-num{font-size:30px;font-weight:900;font-family:var(--mono);line-height:1;}
+.g-lbl{font-size:10px;color:var(--muted2);letter-spacing:0.06em;font-family:var(--mono);}
+.score-mid{}
+.lvl-badge{display:inline-flex;align-items:center;gap:6px;border-radius:100px;padding:5px 14px;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.08em;margin-bottom:10px;}
+.lvl-badge.LOW{background:rgba(0,240,160,0.1);color:var(--accent);border:1px solid rgba(0,240,160,0.25);}
+.lvl-badge.MEDIUM{background:rgba(245,158,11,0.1);color:var(--warn);border:1px solid rgba(245,158,11,0.25);}
+.lvl-badge.HIGH{background:rgba(255,61,61,0.1);color:var(--danger);border:1px solid rgba(255,61,61,0.25);}
+.score-sum{font-size:15px;line-height:1.65;color:var(--text);margin-bottom:14px;}
+.score-wallet{font-family:var(--mono);font-size:12px;color:var(--muted2);display:flex;align-items:center;gap:8px;}
+.copy-btn{background:none;border:1px solid var(--border3);border-radius:6px;padding:2px 8px;font-family:var(--mono);font-size:10px;color:var(--muted2);cursor:pointer;transition:all 0.2s;}
+.copy-btn:hover{border-color:var(--border2);color:var(--accent);}
+.radar-w{width:150px;height:150px;flex-shrink:0;}
+
+/* ── ALERT BANNERS ── */
+.alert-box{border-radius:var(--r);padding:14px 18px;margin-bottom:12px;display:flex;align-items:flex-start;gap:12px;font-size:13px;line-height:1.5;}
+.alert-box.danger{background:rgba(255,61,61,0.06);border:1px solid rgba(255,61,61,0.2);color:#ff9999;}
+.alert-box.warn{background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);color:#fbbf24;}
+.alert-box.info{background:rgba(0,128,255,0.06);border:1px solid rgba(0,128,255,0.2);color:#60a5fa;}
+.alert-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.alert-title{font-weight:600;margin-bottom:3px;}
+.alert-text{font-size:12px;opacity:0.85;font-family:var(--mono);}
+
+/* ── STAT ROW ── */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;}
+.stat-box{background:var(--card);border:1px solid var(--border3);border-radius:var(--r);padding:16px;transition:border-color 0.2s;}
+.stat-box:hover{border-color:var(--border2);}
+.stag{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;}
+.sval{font-size:19px;font-weight:700;color:var(--text);font-family:var(--mono);letter-spacing:-0.02em;}
+.sval.ac{color:var(--accent);}
+.sval.warn{color:var(--warn);}
+.sval.danger{color:var(--danger);}
+.ssub{font-size:11px;color:var(--muted);margin-top:3px;}
+
+/* ── ACTION BAR ── */
+.act-bar{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+.act-btn{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border3);border-radius:var(--r);padding:9px 16px;font-family:var(--mono);font-size:11px;color:var(--muted2);cursor:pointer;transition:all 0.2s;text-decoration:none;}
+.act-btn:hover{border-color:var(--border2);color:var(--accent);}
+.act-btn.primary{background:rgba(0,240,160,0.08);border-color:var(--border2);color:var(--accent);}
+
+/* ── RESULT TABS ── */
+.rtabs{display:flex;gap:0;border-bottom:1px solid var(--border3);margin-bottom:18px;overflow-x:auto;}
+.rtab{padding:9px 18px;font-family:var(--mono);font-size:11px;color:var(--muted2);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap;letter-spacing:0.04em;}
+.rtab.on{color:var(--accent);border-bottom-color:var(--accent);}
+.rpanel{display:none;}
+.rpanel.on{display:block;}
+
+/* ── PANELS ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.panel{background:var(--card);border:1px solid var(--border3);border-radius:var(--rl);padding:20px;}
+.p-head{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:13px;border-bottom:1px solid var(--border3);}
+.p-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.p-icon.w{background:rgba(245,158,11,0.1);}
+.p-icon.g{background:rgba(0,240,160,0.1);}
+.p-icon.d{background:rgba(255,61,61,0.1);}
+.p-title{font-size:13px;font-weight:600;}
+.pcnt{margin-left:auto;font-family:var(--mono);font-size:10px;background:var(--surface);border:1px solid var(--border3);border-radius:100px;padding:2px 9px;color:var(--muted2);}
+.pitem{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border3);}
+.pitem:last-child{border-bottom:none;padding-bottom:0;}
+.pbul{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+.pbul.w{background:var(--warn);}
+.pbul.g{background:var(--accent);}
+.pbul.d{background:var(--danger);}
+.ptext{font-size:13px;color:var(--muted2);line-height:1.5;}
+
+/* ── DIMS ── */
+.dims{background:var(--card);border:1px solid var(--border3);border-radius:var(--rl);padding:20px;margin-bottom:12px;}
+.dim-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;position:relative;}
+.dim-row:last-child{margin-bottom:0;}
+.dim-name{font-family:var(--mono);font-size:11px;color:var(--muted2);width:110px;flex-shrink:0;cursor:help;}
+.dim-bar{flex:1;height:5px;background:rgba(255,255,255,0.06);border-radius:100px;overflow:hidden;}
+.dim-fill{height:100%;border-radius:100px;transition:width 1.2s cubic-bezier(0.4,0,0.2,1);}
+.dim-score{font-family:var(--mono);font-size:11px;color:var(--muted2);width:26px;text-align:right;flex-shrink:0;}
+.dim-tip{display:none;position:absolute;left:0;bottom:calc(100% + 6px);background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--muted2);font-family:var(--mono);width:220px;z-index:10;line-height:1.5;pointer-events:none;}
+.dim-row:hover .dim-tip{display:block;}
+
+/* ── TOKEN TABLE ── */
+.tbl-wrap{background:var(--card);border:1px solid var(--border3);border-radius:var(--rl);overflow:hidden;margin-bottom:12px;}
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;padding:11px 14px;text-align:left;border-bottom:1px solid var(--border3);background:var(--surface);}
+.tbl td{padding:11px 14px;font-size:13px;border-bottom:1px solid var(--border3);}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:rgba(255,255,255,0.015);}
+.mint-c{font-family:var(--mono);font-size:11px;color:var(--muted2);}
+.bal-c{font-family:var(--mono);font-size:12px;}
+.usd-c{font-family:var(--mono);font-size:12px;color:var(--accent);}
+.rug-badge{font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:4px;white-space:nowrap;}
+.rug-badge.good{background:rgba(0,240,160,0.1);color:var(--accent);}
+.rug-badge.warn{background:rgba(245,158,11,0.1);color:var(--warn);}
+.rug-badge.danger{background:rgba(255,61,61,0.1);color:var(--danger);}
+.rug-badge.muted{background:rgba(255,255,255,0.05);color:var(--muted);}
+.dust-b{background:rgba(245,158,11,0.1);color:var(--warn);border-radius:4px;padding:1px 5px;font-size:10px;font-family:var(--mono);margin-left:5px;}
+
+/* ── TX LIST ── */
+.tx-list{background:var(--card);border:1px solid var(--border3);border-radius:var(--rl);overflow:hidden;margin-bottom:12px;}
+.tx-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--border3);transition:background 0.15s;}
+.tx-item:last-child{border-bottom:none;}
+.tx-item:hover{background:rgba(255,255,255,0.02);}
+.tx-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.tx-dot.ok{background:var(--accent);}
+.tx-dot.fail{background:var(--danger);}
+.tx-sig{font-family:var(--mono);font-size:12px;color:var(--accent);text-decoration:none;}
+.tx-sig:hover{text-decoration:underline;}
+.tx-b{font-family:var(--mono);font-size:10px;padding:2px 6px;border-radius:4px;}
+.tx-b.ok{background:rgba(0,240,160,0.08);color:var(--accent);}
+.tx-b.fail{background:rgba(255,61,61,0.08);color:var(--danger);}
+.tx-time{font-family:var(--mono);font-size:11px;color:var(--muted2);margin-left:auto;white-space:nowrap;}
+.tx-empty{padding:28px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);}
+
+/* ── PROTOCOLS ── */
+.proto-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-bottom:12px;}
+.proto-card{background:var(--card);border:1px solid var(--border3);border-radius:var(--r);padding:14px;transition:border-color 0.2s;}
+.proto-card:hover{border-color:var(--border2);}
+.proto-icon{font-size:20px;margin-bottom:7px;}
+.proto-name{font-size:14px;font-weight:600;margin-bottom:2px;}
+.proto-type{font-family:var(--mono);font-size:11px;color:var(--muted2);margin-bottom:7px;}
+.proto-risk{font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:100px;}
+.proto-risk.Low{background:rgba(0,240,160,0.08);color:var(--accent);}
+.proto-risk.Medium{background:rgba(245,158,11,0.08);color:var(--warn);}
+.proto-risk.High{background:rgba(255,61,61,0.08);color:var(--danger);}
+.no-proto{padding:28px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);background:var(--card);border:1px solid var(--border3);border-radius:var(--rl);}
+
+/* ── APPROVALS ── */
+.approval-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--border3);}
+.approval-item:last-child{border-bottom:none;}
+.approval-mint{font-family:var(--mono);font-size:11px;color:var(--muted2);flex:1;}
+.approval-delegate{font-family:var(--mono);font-size:11px;color:var(--warn);}
+.approval-amount{font-family:var(--mono);font-size:12px;color:var(--danger);margin-left:auto;}
+.no-approvals{padding:28px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--accent);}
+
+/* ── PRIVACY BAR ── */
+.priv-bar{display:flex;align-items:flex-start;gap:13px;background:rgba(0,128,255,0.04);border:1px solid rgba(0,128,255,0.12);border-radius:var(--r);padding:16px 20px;margin-bottom:12px;}
+.plock{width:32px;height:32px;border-radius:8px;background:rgba(0,128,255,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--accent2);}
+.priv-title{font-size:13px;font-weight:600;margin-bottom:3px;}
+.priv-text{font-size:12px;color:var(--muted2);line-height:1.6;font-family:var(--mono);}
+
+/* ── COMPARE ── */
+.cmp-card{background:var(--card);border:1px solid var(--border3);border-radius:var(--rxl);padding:18px;}
+.cmp-hdr{display:flex;align-items:center;gap:8px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border3);}
+.cmp-tag{font-family:var(--mono);font-size:11px;background:var(--surface);border:1px solid var(--border3);border-radius:6px;padding:3px 10px;color:var(--muted2);}
+.mini-score{text-align:center;margin-bottom:14px;}
+.ms-num{font-size:40px;font-weight:900;font-family:var(--mono);}
+.ms-lvl{font-family:var(--mono);font-size:11px;letter-spacing:0.08em;margin-top:3px;}
+.mini-stat{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;padding:6px 0;border-bottom:1px solid var(--border3);color:var(--muted2);}
+.mini-stat:last-child{border-bottom:none;}
+.mini-stat span:last-child{color:var(--text);}
+
+/* ── DEMO NOTE ── */
+.demo-note{display:none;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:10px 14px;font-family:var(--mono);font-size:11px;color:var(--warn);margin-bottom:14px;}
+
+/* ── FOOTER ── */
+.footer{text-align:center;margin-top:64px;padding-top:26px;border-top:1px solid var(--border3);animation:fadeUp 0.7s 0.3s ease both;}
+.footer-built{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:12px;}
+.footer-built a{color:var(--accent);text-decoration:none;}
+.footer-socials{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:7px;}
+.social-chip{display:inline-flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--border3);border-radius:100px;padding:5px 12px;font-family:var(--mono);font-size:10px;color:var(--muted2);text-decoration:none;transition:all 0.2s;letter-spacing:0.04em;}
+.social-chip:hover{border-color:var(--border2);color:var(--accent);background:rgba(0,240,160,0.05);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── WALLET CONNECT ── */
+
+.wallet-connect-btn{background:rgba(0,240,160,0.1);color:var(--accent);border:1px solid var(--border2);border-radius:100px;padding:6px 14px;font-family:var(--mono);font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s;white-space:nowrap;flex-shrink:0;letter-spacing:0.04em;}
+.wallet-connect-btn:hover{background:rgba(0,240,160,0.18);box-shadow:0 0 12px rgba(0,240,160,0.2);}
+.wallet-connect-btn.disconnect{background:transparent;border:1px solid var(--border3);color:var(--muted2);font-weight:400;}
+.wallet-connect-btn.disconnect:hover{border-color:var(--danger);color:var(--danger);box-shadow:none;}
+.wallet-select{display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--card);border:1px solid var(--border2);border-radius:var(--rl);padding:10px;z-index:100;min-width:220px;box-shadow:0 8px 32px rgba(0,0,0,0.3);}
+.wallet-select.open{display:block;}
+.wallet-option{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r);cursor:pointer;transition:background 0.15s;font-size:14px;}
+.wallet-option:hover{background:rgba(0,240,160,0.08);}
+.wallet-option img{width:28px;height:28px;border-radius:8px;}
+.wallet-wrap{position:relative;}
+.not-connected-msg{font-family:var(--mono);font-size:11px;color:var(--muted2);}
+@keyframes countUp{from{opacity:0}to{opacity:1}}
+
+/* ── RESPONSIVE ── */
+@media(max-width:860px){
+  .score-card{grid-template-columns:1fr;gap:18px;text-align:center;}
+  .gauge-w,.radar-w{margin:0 auto;}
+  .score-wallet{justify-content:center;}
+  .stat-row{grid-template-columns:1fr 1fr;}
+  .health-card{grid-template-columns:1fr 1fr 1fr;}
+  .cmp-results.on{grid-template-columns:1fr;}
+}
+@media(max-width:860px){#cmp-score-grid{grid-template-columns:1fr!important;}}
+@media(max-width:640px){
+  nav{margin-bottom:36px;}
+  h1{font-size:32px;}
+  .strip{flex-wrap:wrap;}
+  .strip-item{min-width:50%;border-bottom:1px solid var(--border3);}
+  .strip-item:nth-child(odd){border-right:1px solid var(--border3);}
+  .strip-item:nth-child(even){border-right:none;}
+  .two-col,.health-card{grid-template-columns:1fr;}
+  .compare-inputs.on{flex-direction:column;}
+  .proto-grid{grid-template-columns:1fr 1fr;}
+  .act-bar{gap:6px;}
+  .networth-banner{flex-direction:column;gap:12px;}
+  .nw-right{text-align:left;}
+}
+@media(max-width:480px){
+  .wrap{padding:0 16px 60px;}
+  h1{font-size:27px;}
+  .stat-row{grid-template-columns:1fr;}
+  .eyebrow{display:none;}
+  .strip{display:grid;grid-template-columns:1fr 1fr;}
+  .strip-item{border-right:none!important;border-bottom:1px solid var(--border3)!important;}
+  .strip-item:nth-child(odd){border-right:1px solid var(--border3)!important;}
+  .nw-val{font-size:30px;}
+  .health-card{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="bg-layer"><div class="bg-grid"></div><div class="bg-g1"></div><div class="bg-g2"></div></div>
+<div class="wrap">
+
+<nav>
+  <div class="nav-left"><div class="live-dot"></div><div class="nav-logo">SOLROUTER · RISK INTELLIGENCE</div></div>
+  <div class="nav-right">
+    <button class="nav-btn" id="theme-btn" onclick="toggleTheme()">☀ Light</button>
+    <div class="wallet-wrap">
+      <button class="wallet-connect-btn" id="wallet-connect-btn" onclick="toggleWalletMenu()">🔓 Connect Wallet</button>
+      <div class="wallet-select" id="wallet-select">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);padding:8px 12px;letter-spacing:0.08em;text-transform:uppercase;border-bottom:1px solid var(--border3);margin-bottom:4px">Select Wallet</div>
+        <div class="wallet-option" onclick="connectWallet('phantom')">
+          <img src="https://phantom.app/img/phantom-logo.png" onerror="this.style.display='none'" alt="" style="width:24px;height:24px;border-radius:6px"/>
+          <span>Phantom</span>
+        </div>
+        <div class="wallet-option" onclick="connectWallet('solflare')">
+          <img src="https://solflare.com/assets/logo.svg" onerror="this.style.display='none'" alt="" style="width:24px;height:24px;border-radius:6px"/>
+          <span>Solflare</span>
+        </div>
+        <div class="wallet-option" onclick="connectWallet('backpack')">
+          <span style="font-size:20px">🎒</span>
+          <span>Backpack</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow"><div class="pulse"></div>Encrypted Inference · SolRouter + Nosana Network</div>
+  <h1>DeFi Portfolio<br/><span class="g">Risk Intelligence</span></h1>
+  <p class="hero-sub">The first encrypted DeFi risk scanner on Solana. RugCheck token analysis, net worth tracking, approval audits, all processed in isolated hardware. Zero data logged.</p>
+</section>
+
+<div class="strip">
+  <div class="strip-item"><div class="strip-num">256-bit</div><div class="strip-lbl">Encryption</div></div>
+  <div class="strip-item"><div class="strip-num">TEE</div><div class="strip-lbl">Isolation</div></div>
+  <div class="strip-item"><div class="strip-num">RugCheck</div><div class="strip-lbl">Token Scan</div></div>
+  <div class="strip-item"><div class="strip-num">0</div><div class="strip-lbl">Data Logged</div></div>
+</div>
+
+<div class="mode-tabs">
+  <div class="mtab on" id="mt-single" onclick="setMode('single')">Single Wallet Scan</div>
+  <div class="mtab" id="mt-compare" onclick="setMode('compare')">Compare Two Wallets</div>
+</div>
+
+<div class="scanner">
+  <div class="s-head"><div class="dr"></div><div class="dy"></div><div class="dg"></div><span class="s-title">Risk-Scanner — SolRouter Agent v2.1 · Solana Devnet</span></div>
+  <div class="s-body">
+    <label class="ilbl" id="input-label">Enter your Solana wallet address</label>
+    <div id="single-row"><input id="w1" class="wi" type="text" placeholder="e.g. 7iM3vNN15rTa9b2B1Rg1UCZUEwSA1eRswja6a4gjFjb9" spellcheck="false" autocomplete="off"/></div>
+    <div class="compare-inputs" id="ci">
+      <div class="cc"><div class="clbl">Enter your Solana wallet address </div><input id="wA" class="wi" type="text" placeholder="First wallet address" spellcheck="false" autocomplete="off"/></div>
+      <div class="cc"><div class="clbl">Enter your Solana wallet address </div><input id="wB" class="wi" type="text" placeholder="Second wallet address" spellcheck="false" autocomplete="off"/></div>
+    </div>
+    <button class="scan-btn" id="scan-btn" onclick="runScan()">Run Scan →</button>
+    <div class="hint-row"><span class="chip">DEVNET</span><span class="chip">ENCRYPTED</span><span class="chip">RUGCHECK</span> All queries encrypted · Token contracts scanned · Zero logs</div>
+    <div class="recent-row" id="recent-row">
+      <div class="recent-hdr"><span>Recent Scans</span><span class="recent-clear" onclick="clearHistory()">Clear</span></div>
+      <div class="recent-chips" id="recent-chips"></div>
+    </div>
+  </div>
+</div>
+
+<div class="err" id="err-box"></div>
+<div class="loading" id="loading">
+  <div class="spin-w"><div class="sr1"></div><div class="sr2"></div><div class="sdot"></div></div>
+  <div class="ltitle">Scanning Wallet</div>
+  <div class="steps">
+    <div class="step" id="s1"><span class="si">◉</span> Connecting to Solana Devnet</div>
+    <div class="step" id="s2"><span class="si">◎</span> Fetching on-chain positions</div>
+    <div class="step" id="s3"><span class="si">◎</span> Scanning token contracts</div>
+    <div class="step" id="s4"><span class="si">◎</span> Checking approvals & prices</div>
+    <div class="step" id="s5"><span class="si">◎</span> SolRouter encrypted inference</div>
+    <div class="step" id="s6"><span class="si">◎</span> Generating risk intelligence</div>
+  </div>
+</div>
+
+<!-- SINGLE RESULTS -->
+<div class="results" id="results">
+  <div class="demo-note" id="demo-note">⚠ SolRouter nodes warming up — showing on-device encrypted analysis. Live inference activates automatically when nodes are available.</div>
+
+  <!-- Net Worth Banner -->
+  <div class="networth-banner">
+    <div class="nw-left">
+      <div class="nw-label">// estimated portfolio value</div>
+      <div class="nw-val" id="nw-val">$0.00</div>
+      <div class="nw-sub" id="nw-sub">Across SOL + SPL tokens · Devnet prices</div>
+    </div>
+    <div class="nw-right">
+      <div class="nw-item">SOL Price <span id="nw-sol-price">—</span></div>
+      <div class="nw-item">SOL Value <span id="nw-sol-val">—</span></div>
+      <div class="nw-item">Token Value <span id="nw-tok-val">—</span></div>
+    </div>
+  </div>
+
+  <!-- Health Card -->
+  <div class="health-card" id="health-card">
+    <div class="hc" id="hc-risk"><div class="hc-icon">🛡️</div><div class="hc-label">Risk Level</div><div class="hc-val" id="hc-risk-val">—</div><div class="hc-sub" id="hc-risk-sub">—</div></div>
+    <div class="hc" id="hc-wallet"><div class="hc-icon">💰</div><div class="hc-label">Wallet Health</div><div class="hc-val" id="hc-wallet-val">—</div><div class="hc-sub" id="hc-wallet-sub">—</div></div>
+    <div class="hc" id="hc-tokens"><div class="hc-icon">🔍</div><div class="hc-label">Token Safety</div><div class="hc-val" id="hc-tokens-val">—</div><div class="hc-sub" id="hc-tokens-sub">—</div></div>
+  </div>
+
+  <!-- Alert Banners (dynamic) -->
+  <div id="alert-zone"></div>
+
+  <!-- Score Card -->
+  <div class="score-card" id="score-card">
+    <div class="gauge-w">
+      <svg class="g-svg" width="130" height="130" viewBox="0 0 130 130">
+        <circle class="g-bg" cx="65" cy="65" r="52"/>
+        <circle class="g-fill" id="g-fill" cx="65" cy="65" r="52" stroke-dasharray="327" stroke-dashoffset="327"/>
+      </svg>
+      <div class="g-center"><div class="g-num" id="g-num">0</div><div class="g-lbl">/ 100</div></div>
+    </div>
+    <div class="score-mid">
+      <div class="lvl-badge" id="lvl-badge">—</div>
+      <p class="score-sum" id="score-sum">—</p>
+      <div class="score-wallet"><span id="wallet-disp">—</span><button class="copy-btn" onclick="copyWallet()">copy</button></div>
+    </div>
+    <div class="radar-w"><svg id="radar-svg" width="150" height="150" viewBox="0 0 150 150" style="overflow:visible"></svg></div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stat-row">
+    <div class="stat-box"><div class="stag">SOL Balance</div><div class="sval" id="s-sol">—</div><div class="ssub" id="s-sol-p">—</div></div>
+    <div class="stat-box"><div class="stag">Transactions</div><div class="sval" id="s-tx">—</div><div class="ssub" id="s-tx-sub">—</div></div>
+    <div class="stat-box"><div class="stag">Wallet Age</div><div class="sval" id="s-age">—</div><div class="ssub">days on-chain</div></div>
+    <div class="stat-box"><div class="stag">Active Tokens</div><div class="sval ac" id="s-toks">—</div><div class="ssub" id="s-toks-sub">—</div></div>
+  </div>
+
+  <!-- Actions -->
+  <div class="act-bar">
+    <button class="act-btn primary" onclick="exportTxt()">⬇ Export TXT</button>
+    <button class="act-btn" onclick="exportCsv()">📊 Export CSV</button>
+    <button class="act-btn" onclick="shareReport()">🔗 Share Link</button>
+    <button class="act-btn" onclick="newScan()">↺ New Scan</button>
+    <a id="explorer-link" class="act-btn" href="#" target="_blank">🔍 Explorer</a>
+  </div>
+
+  <!-- Result Tabs -->
+  <div class="rtabs">
+    <div class="rtab on" onclick="showTab('overview')">Overview</div>
+    <div class="rtab" onclick="showTab('tokens')">Tokens <span id="tok-cnt-tab"></span></div>
+    <div class="rtab" onclick="showTab('transactions')">Transactions</div>
+    <div class="rtab" onclick="showTab('protocols')">Protocols</div>
+    <div class="rtab" onclick="showTab('approvals')">Approvals <span id="appr-cnt-tab"></span></div>
+  </div>
+
+  <div class="rpanel on" id="tab-overview">
+    <div class="two-col">
+      <div class="panel">
+        <div class="p-head"><div class="p-icon w">⚑</div><div class="p-title">Risk Flags</div><div class="pcnt" id="flags-cnt">0</div></div>
+        <div id="flags-list"></div>
+      </div>
+      <div class="panel">
+        <div class="p-head"><div class="p-icon g">✦</div><div class="p-title">Recommendations</div><div class="pcnt" id="recs-cnt">0</div></div>
+        <div id="recs-list"></div>
+      </div>
+    </div>
+    <div class="dims">
+      <div class="p-head" style="margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border3);">
+        <div class="p-icon g">◈</div><div class="p-title">Risk Dimensions</div><div style="font-family:var(--mono);font-size:10px;color:var(--muted2);margin-left:auto">hover for details</div>
+      </div>
+      <div id="dims-list"></div>
+    </div>
+    <div class="priv-bar">
+      <div class="plock"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+      <div><div class="priv-title">End-to-End Encrypted Analysis</div><div class="priv-text">Your wallet data was encrypted before leaving this device. Processed inside a Trusted Execution Environment (TEE) on Nosana's decentralized GPU network. Zero centralized server involvement.</div></div>
+    </div>
+  </div>
+
+  <div class="rpanel" id="tab-tokens">
+    <div class="tbl-wrap"><table class="tbl">
+      <thead><tr><th>Token</th><th>Balance</th><th>USD Value</th><th>RugCheck</th><th>Status</th></tr></thead>
+      <tbody id="tokens-tbody"></tbody>
+    </table></div>
+  </div>
+
+  <div class="rpanel" id="tab-transactions">
+    <div class="tx-list" id="tx-list"></div>
+  </div>
+
+  <div class="rpanel" id="tab-protocols">
+    <div class="proto-grid" id="proto-grid"></div>
+    <div class="no-proto" id="no-proto" style="display:none">No known DeFi protocol interactions detected in recent transactions.</div>
+  </div>
+
+  <div class="rpanel" id="tab-approvals">
+    <div class="alert-box info" style="margin-bottom:12px">
+      <div class="alert-icon">ℹ️</div>
+      <div><div class="alert-title">What are approvals?</div><div class="alert-text">Token approvals let third-party contracts spend your tokens. Risky or forgotten approvals can drain your wallet. Revoke any you don't recognize.</div></div>
+    </div>
+    <div class="tbl-wrap"><table class="tbl">
+      <thead><tr><th>Token Mint</th><th>Delegate Address</th><th>Approved Amount</th></tr></thead>
+      <tbody id="approvals-tbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- COMPARE RESULTS -->
+<div id="cmp-results" style="display:none">
+  <!-- Compare Header -->
+  <div style="background:var(--card);border:1px solid var(--border2);border-radius:var(--rl);padding:16px 22px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden;">
+    <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent)"></div>
+    <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent)">// Wallet Comparison Report</div>
+    <button class="act-btn" onclick="newScan()">↺ New Scan</button>
+  </div>
+
+  <!-- Score Banner side by side -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;" id="cmp-score-grid">
+    <div class="cmp-card" id="cmp-a-score"></div>
+    <div class="cmp-card" id="cmp-b-score"></div>
+  </div>
+
+  <!-- Stats comparison table -->
+  <div style="background:var(--card);border:1px solid var(--border3);border-radius:var(--rl);overflow:hidden;margin-bottom:14px;">
+    <table class="tbl">
+      <thead><tr><th>Metric</th><th id="cmp-th-a">Wallet A</th><th id="cmp-th-b">Wallet B</th></tr></thead>
+      <tbody id="cmp-stats-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- Flags & Recs side by side -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+    <div class="panel">
+      <div class="p-head"><div class="p-icon w">⚑</div><div class="p-title">Wallet A — Risk Flags</div><div class="pcnt" id="cmp-a-flags-cnt">0</div></div>
+      <div id="cmp-a-flags"></div>
+    </div>
+    <div class="panel">
+      <div class="p-head"><div class="p-icon w">⚑</div><div class="p-title">Wallet B — Risk Flags</div><div class="pcnt" id="cmp-b-flags-cnt">0</div></div>
+      <div id="cmp-b-flags"></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+    <div class="panel">
+      <div class="p-head"><div class="p-icon g">✦</div><div class="p-title">Wallet A — Recommendations</div></div>
+      <div id="cmp-a-recs"></div>
+    </div>
+    <div class="panel">
+      <div class="p-head"><div class="p-icon g">✦</div><div class="p-title">Wallet B — Recommendations</div></div>
+      <div id="cmp-b-recs"></div>
+    </div>
+  </div>
+
+  <!-- Tokens side by side -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+    <div class="tbl-wrap">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);letter-spacing:0.08em;text-transform:uppercase;padding:10px 14px;border-bottom:1px solid var(--border3);background:var(--surface)">Wallet A · Tokens</div>
+      <table class="tbl"><thead><tr><th>Mint</th><th>Balance</th><th>RugCheck</th></tr></thead><tbody id="cmp-a-tokens"></tbody></table>
+    </div>
+    <div class="tbl-wrap">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted2);letter-spacing:0.08em;text-transform:uppercase;padding:10px 14px;border-bottom:1px solid var(--border3);background:var(--surface)">Wallet B · Tokens</div>
+      <table class="tbl"><thead><tr><th>Mint</th><th>Balance</th><th>RugCheck</th></tr></thead><tbody id="cmp-b-tokens"></tbody></table>
+    </div>
+  </div>
+
+  <!-- Risk dimensions side by side -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+    <div class="dims"><div class="p-head" style="margin-bottom:12px;padding-bottom:11px;border-bottom:1px solid var(--border3)"><div class="p-icon g">◈</div><div class="p-title">Wallet A · Risk Dimensions</div></div><div id="cmp-a-dims"></div></div>
+    <div class="dims"><div class="p-head" style="margin-bottom:12px;padding-bottom:11px;border-bottom:1px solid var(--border3)"><div class="p-icon g">◈</div><div class="p-title">Wallet B · Risk Dimensions</div></div><div id="cmp-b-dims"></div></div>
+  </div>
+
+  <div class="priv-bar">
+    <div class="plock"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+    <div><div class="priv-title">Both wallets analyzed with end-to-end encryption</div><div class="priv-text">All queries encrypted before leaving your device. Processed in isolated hardware on Nosana's decentralized GPU network. Zero logs.</div></div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-built">Built by <a href="https://x.com/Olamiayan" target="_blank">OlaTech IT</a> &nbsp;·&nbsp; Powered by <a href="https://solrouter.com" target="_blank">SolRouter</a></div>
+  <div class="footer-socials">
+    <a href="https://x.com/SolRouterAI" target="_blank" class="social-chip">𝕏 @SolRouterAI</a>
+    <a href="https://t.me/+uEgTRV5CivVmYTRi" target="_blank" class="social-chip"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg> Telegram</a>
+    <a href="https://www.solrouter.com/docs" target="_blank" class="social-chip">📄 Docs</a>
+    <a href="https://nosana.io" target="_blank" class="social-chip">⚡ Nosana</a>
+    <a href="https://solana.com" target="_blank" class="social-chip">◎ Solana</a>
+  </div>
+</footer>
+</div>
+
+<script>
+var mode='single', currentWallet='', currentReport=null, currentPortfolio=null, currentApprovals=[];
+var STEPS=['s1','s2','s3','s4','s5','s6'];
+var DIM_TIPS={
+  'Liquidity Risk':'How much SOL you have for gas fees. Low SOL = failed txs.',
+  'Concentration Risk':'How spread out your tokens are. 1 token = high risk.',
+  'Activity Score':'How active this wallet is on-chain. Low activity = unknown risk.',
+  'Security Risk':'Dust tokens, scam airdrops, suspicious mints.',
+  'Reliability':'Transaction failure rate and wallet age.'
+};
+
+function toggleTheme(){
+  var h=document.documentElement, b=document.getElementById('theme-btn');
+  if(h.dataset.theme==='dark'){h.dataset.theme='light';b.textContent='🌙 Dark';}
+  else{h.dataset.theme='dark';b.textContent='☀ Light';}
+}
+
+function setMode(m){
+  mode=m;
+  document.getElementById('mt-single').classList.toggle('on',m==='single');
+  document.getElementById('mt-compare').classList.toggle('on',m==='compare');
+  document.getElementById('single-row').style.display=m==='single'?'block':'none';
+  document.getElementById('ci').classList.toggle('on',m==='compare');
+  document.getElementById('input-label').textContent=m==='single'?'// enter solana wallet address':'Enter your Solana wallet addresses to compare';
+  document.getElementById('scan-btn').textContent=m==='single'?'Run Scan →':'Compare Wallets →';
+}
+
+function setStep(n){
+  STEPS.forEach(function(id,i){
+    var el=document.getElementById(id);
+    if(!el) return;
+    el.className='step'+(i<n?' done':i===n?' on':'');
+    el.querySelector('.si').textContent=i<n?'✓':i===n?'◉':'◎';
+  });
+}
+
+// ── WALLET CONNECT ──────────────────────────────────────────
+var connectedWallet = null;
+var connectedWalletName = null;
+
+function storageKey() {
+  return connectedWallet ? 'sr_h_' + connectedWallet : 'sr_h_guest';
+}
+
+function toggleWalletMenu() {
+  var sel = document.getElementById('wallet-select');
+  if (connectedWallet) {
+    disconnectWallet();
+    return;
+  }
+  sel.classList.toggle('open');
+}
+
+// Close menu when clicking outside
+document.addEventListener('click', function(e) {
+  var wrap = document.querySelector('.wallet-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    var sel = document.getElementById('wallet-select');
+    if (sel) sel.classList.remove('open');
+  }
+});
+
+async function connectWallet(provider) {
+  document.getElementById('wallet-select').classList.remove('open');
+  try {
+    var wallet = null;
+    if (provider === 'phantom') wallet = window.phantom?.solana || window.solana;
+    if (provider === 'solflare') wallet = window.solflare;
+    if (provider === 'backpack') wallet = window.backpack?.solana || window.xnft?.solana;
+
+    if (!wallet) {
+      var urls = {
+        phantom: 'https://phantom.app',
+        solflare: 'https://solflare.com',
+        backpack: 'https://backpack.app'
+      };
+      var names = { phantom: 'Phantom', solflare: 'Solflare', backpack: 'Backpack' };
+      if (confirm(names[provider] + ' wallet not found. Install it?')) {
+        window.open(urls[provider], '_blank');
+      }
+      return;
+    }
+
+    var resp = await wallet.connect();
+    var pubkey = resp.publicKey.toString();
+    connectedWallet = pubkey;
+    connectedWalletName = provider.charAt(0).toUpperCase() + provider.slice(1);
+    updateWalletBar(pubkey, connectedWalletName);
+    renderChips();
+  } catch (err) {
+    console.log('Wallet connect error:', err.message);
+    showErr('Wallet connection cancelled or failed.');
+  }
+}
+
+function disconnectWallet() {
+  connectedWallet = null;
+  connectedWalletName = null;
+  updateWalletBar(null, null);
+  renderChips();
+}
+
+function updateWalletBar(pubkey, name) {
+  var btn = document.getElementById('wallet-connect-btn');
+  if (pubkey) {
+    btn.textContent = '🔐 ' + pubkey.slice(0,4) + '…' + pubkey.slice(-4);
+    btn.className = 'wallet-connect-btn disconnect';
+    btn.title = name + ' connected: ' + pubkey + ' · Click to disconnect';
+  } else {
+    btn.textContent = '🔓 Connect Wallet';
+    btn.className = 'wallet-connect-btn';
+    btn.title = 'Connect wallet to save scan history';
+  }
+}
+
+// ── HISTORY ──────────────────────────────────
+function getH() {
+  try { return JSON.parse(localStorage.getItem(storageKey()) || '[]'); } catch(e) { return []; }
+}
+
+function saveHistory(wallet, score, level) {
+  var h = getH().filter(function(x) { return x.wallet !== wallet; });
+  h.unshift({ wallet: wallet, score: score, level: level, time: Date.now() });
+  try { localStorage.setItem(storageKey(), JSON.stringify(h.slice(0, 8))); } catch(e) {}
+  renderChips();
+}
+
+function clearHistory() {
+  try { localStorage.removeItem(storageKey()); } catch(e) {}
+  renderChips();
+}
+
+function renderChips() {
+  var row  = document.getElementById('recent-row');
+  var wrap = document.getElementById('recent-chips');
+  if (!row || !wrap) return;
+  var h = getH();
+  if (!h.length) { row.style.display = 'none'; return; }
+  row.style.display = 'block';
+  var clr = { LOW:'#00f0a0', MEDIUM:'#f59e0b', HIGH:'#ff3d3d' };
+  var out = '';
+  for (var i = 0; i < h.length; i++) {
+    var it = h[i];
+    var c  = clr[it.level] || '#6b7a94';
+    var w  = it.wallet.slice(0,4) + '...' + it.wallet.slice(-4);
+    out += '<div onclick="loadRecent(this)" data-wallet="' + it.wallet + '" style="display:flex;align-items:center;gap:6px;cursor:pointer;background:var(--surface);border:1px solid var(--border3);border-radius:8px;padding:5px 10px;font-family:var(--mono);font-size:11px;color:var(--muted2);transition:border-color 0.2s" onmouseover="this.style.borderColor=this.dataset.hc" onmouseout="this.style.borderColor=this.dataset.oc" data-hc="rgba(0,240,160,0.22)" data-oc="rgba(255,255,255,0.06)">'
+         + '<span style="color:' + c + ';font-weight:700">' + it.score + '</span>'
+         + '<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:rgba(0,0,0,0.2);color:' + c + '">' + it.level + '</span>'
+         + '<span>' + w + '</span></div>';
+  }
+  wrap.innerHTML = out;
+}
+
+function loadRecent(el) {
+  document.getElementById('w1').value = el.dataset.wallet;
+  setMode('single');
+  runScan();
+}
+
+
+// ── SCAN ──────────────────────────────────────
+async function runScan(){
+  if(mode==='compare'){await runCompare();return;}
+  var wallet=document.getElementById('w1').value.trim();
+  if(!wallet){showErr('Please enter a Solana wallet address.');return;}
+  currentWallet=wallet;
+  var btn=document.getElementById('scan-btn');
+  btn.disabled=true;btn.textContent='Scanning...';
+  hide('results');document.getElementById('cmp-results').style.display='none';hideErr();show('loading');setStep(0);
+  var timers=[800,1800,3200,4800,6400].map(function(t,i){return setTimeout(function(){setStep(i+1);},t);});
+  try{
+    var res=await fetch('/api/scan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({wallet:wallet})});
+    var data=await res.json();
+    timers.forEach(clearTimeout);
+    if(!res.ok||data.error) throw new Error(data.error||'Scan failed');
+    setStep(6);
+    currentPortfolio=data.portfolio;
+    currentReport=data.report;
+    currentApprovals=data.approvals||[];
+    setTimeout(function(){hide('loading');renderResults(data.portfolio,data.report,data.approvals||[]);},600);
+    saveHistory(wallet,data.report.riskScore,data.report.riskLevel);
+  }catch(err){
+    timers.forEach(clearTimeout);
+    hide('loading');
+    showErr(err.message);
+  }finally{
+    btn.disabled=false;
+    btn.textContent='Run Scan →';
+  }
+}
+
+async function runCompare(){
+  var wA=document.getElementById('wA').value.trim();
+  var wB=document.getElementById('wB').value.trim();
+  if(!wA||!wB){showErr('Please enter both wallet addresses.');return;}
+  var btn=document.getElementById('scan-btn');
+  btn.disabled=true;btn.textContent='Comparing...';
+  hide('results');document.getElementById('cmp-results').style.display='none';hideErr();show('loading');setStep(0);
+  var timers=[800,2000,3500,5000,6500].map(function(t,i){return setTimeout(function(){setStep(i+1);},t);});
+  try{
+    var res=await fetch('/api/compare',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({walletA:wA,walletB:wB})});
+    var data=await res.json();
+    timers.forEach(clearTimeout);
+    if(!res.ok||data.error) throw new Error(data.error||'Compare failed');
+    setStep(6);
+    setTimeout(function(){hide('loading');renderCompare(data);},600);
+  }catch(err){
+    timers.forEach(clearTimeout);
+    hide('loading');
+    showErr(err.message);
+  }finally{
+    btn.disabled=false;
+    btn.textContent='Compare Wallets →';
+  }
+}
+
+// ── RENDER ────────────────────────────────────
+function renderResults(p,r,approvals){
+  var demoNote = document.getElementById('demo-note');
+  if(r._demo){
+    demoNote.style.display='block';
+    demoNote.textContent='⚠ SolRouter nodes warming up — showing on-device analysis. Add ANTHROPIC_API_KEY to .env for live Claude fallback.';
+  } else if(r._source==='claude'){
+    demoNote.style.display='block';
+    demoNote.style.background='rgba(0,128,255,0.06)';
+    demoNote.style.borderColor='rgba(0,128,255,0.2)';
+    demoNote.style.color='#60a5fa';
+    demoNote.textContent='ℹ Analyzed via Claude AI fallback (SolRouter nodes cold). Add ANTHROPIC_API_KEY to .env for live inference.';
+  } else {
+    demoNote.style.display='none';
+  }
+
+  // Net worth
+  var totalUsd=p.totalUsd||0;
+  var tokUsd=totalUsd-(p.solUsdValue||0);
+  animateNum('nw-val',totalUsd,'$','',2);
+  setV('nw-sol-price',p.solPrice?'$'+p.solPrice.toFixed(2):'N/A');
+  setV('nw-sol-val',p.solUsdValue?'$'+p.solUsdValue.toFixed(2):'$0.00');
+  setV('nw-tok-val',tokUsd>0?'$'+tokUsd.toFixed(2):'$0.00');
+  setV('nw-sub',p.tokenCount+' token accounts · Devnet prices via Jupiter');
+
+  // Health cards
+  var riskCls=r.riskLevel==='LOW'?'green':r.riskLevel==='HIGH'?'red':'amber';
+  setClass('hc-risk',['hc',riskCls].join(' '));
+  setV('hc-risk-val',r.riskScore);
+  setV('hc-risk-sub',r.riskLevel+' RISK · '+r.riskScore+'/100');
+
+  var solOk=p.solBalance>=0.05;
+  setClass('hc-wallet',['hc',solOk?'green':'red'].join(' '));
+  setV('hc-wallet-val',p.solBalance.toFixed(3));
+  setV('hc-wallet-sub','SOL · '+(solOk?'Gas OK':'Top up needed'));
+
+  var rugs=p.tokens.filter(function(t){return t.rugcheck&&t.rugcheck.verdict==='DANGER';}).length;
+  var rugCls=rugs===0?'green':rugs<=1?'amber':'red';
+  setClass('hc-tokens',['hc',rugCls].join(' '));
+  setV('hc-tokens-val',rugs===0?'SAFE':rugs+' RISK');
+  setV('hc-tokens-sub',(p.tokens.length-rugs)+' clean · '+rugs+' flagged');
+
+  // Alert banners
+  var az=document.getElementById('alert-zone');
+  var alerts='';
+  if(approvals.length>0){
+    alerts+='<div class="alert-box danger"><div class="alert-icon">🚨</div><div><div class="alert-title">'+approvals.length+' Active Token Approval(s) Detected</div><div class="alert-text">Third-party contracts can spend your tokens. Review and revoke on the Approvals tab.</div></div></div>';
+  }
+  if(rugs>0){
+    alerts+='<div class="alert-box danger"><div class="alert-icon">☠️</div><div><div class="alert-title">'+rugs+' High-Risk Token(s) in Wallet</div><div class="alert-text">RugCheck flagged tokens with DANGER scores. Review the Tokens tab immediately.</div></div></div>';
+  }
+  if(p.dustTokens&&p.dustTokens.length>2){
+    alerts+='<div class="alert-box warn"><div class="alert-icon">⚠️</div><div><div class="alert-title">'+p.dustTokens.length+' Dust/Potential Scam Tokens Found</div><div class="alert-text">Small token balances often indicate airdrop scams. Do not interact with unknown tokens.</div></div></div>';
+  }
+  if(p.solBalance===0){
+    alerts+='<div class="alert-box warn"><div class="alert-icon">⛽</div><div><div class="alert-title">Zero SOL — Cannot Pay Transaction Fees</div><div class="alert-text">Fund this wallet with at least 0.05 SOL before interacting with any DeFi protocol.</div></div></div>';
+  }
+  az.innerHTML=alerts;
+
+  // Score gauge
+  animateGauge(r.riskScore,r.riskLevel);
+  var badge=document.getElementById('lvl-badge');
+  badge.className='lvl-badge '+r.riskLevel;
+  badge.textContent=r.riskLevel+' RISK';
+  setV('score-sum',r.summary);
+  setV('wallet-disp',p.shortWallet);
+  document.getElementById('explorer-link').href='https://explorer.solana.com/address/'+p.wallet+'?cluster=devnet';
+
+  // Radar
+  if(r.dimensions) renderRadar(r.dimensions);
+
+  // Stats
+  setV('s-sol',p.solBalance.toFixed(4)+' SOL');
+  setV('s-sol-p',p.solPrice?'@ $'+p.solPrice.toFixed(2):'Price N/A');
+  setV('s-tx',p.totalTxCount||0);
+  setV('s-tx-sub',p.failedTxCount>0?p.failedTxCount+' failed':'All successful');
+  setV('s-age',p.walletAgeDays!==null?p.walletAgeDays:'—');
+  setV('s-toks',p.activeTokens?p.activeTokens.length:0);
+  setV('s-toks-sub',(p.dustTokens?p.dustTokens.length:0)+' dust · '+(p.emptyTokens?p.emptyTokens.length:0)+' empty');
+
+  // Flags & Recs
+  var flags=r.flags||[];
+  setV('flags-cnt',flags.length);
+  document.getElementById('flags-list').innerHTML=flags.map(function(f){return '<div class="pitem"><div class="pbul w"></div><div class="ptext">'+f+'</div></div>';}).join('');
+  var recs=r.recommendations||[];
+  setV('recs-cnt',recs.length);
+  document.getElementById('recs-list').innerHTML=recs.map(function(rc){return '<div class="pitem"><div class="pbul g"></div><div class="ptext">'+rc+'</div></div>';}).join('');
+
+  // Dims
+  var dims=r.dimensions||{};
+  var dimDefs=[
+    ['Liquidity Risk','liquidity'],['Concentration Risk','concentration'],
+    ['Activity Score','activity'],['Security Risk','security'],['Reliability','reliability']
+  ];
+  document.getElementById('dims-list').innerHTML=dimDefs.map(function(d){
+    var val=dims[d[1]]||0;
+    var col=val>=70?'#ff3d3d':val>=40?'#f59e0b':'#00f0a0';
+    var tip=DIM_TIPS[d[0]]||'';
+    return '<div class="dim-row"><div class="dim-name" title="'+tip+'">'+d[0]+'<div class="dim-tip">'+tip+'</div></div>'
+      +'<div class="dim-bar"><div class="dim-fill" style="width:'+val+'%;background:'+col+'"></div></div>'
+      +'<div class="dim-score">'+val+'</div></div>';
+  }).join('');
+
+  // Tokens table
+  var tbody=document.getElementById('tokens-tbody');
+  var toks=p.tokens||[];
+  setV('tok-cnt-tab',toks.length?'('+toks.length+')':'');
+  if(!toks.length){
+    tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:12px;padding:28px">No token accounts found</td></tr>';
+  } else {
+    tbody.innerHTML=toks.map(function(t){
+      var isDust=t.balance>0&&t.balance<0.001;
+      var rc=t.rugcheck;
+      var meta=t.meta;
+      var rcBadge=rc?'<span class="rug-badge '+(rc.verdict==='GOOD'?'good':rc.verdict==='WARN'?'warn':rc.verdict==='DANGER'?'danger':'muted')+'">'+rc.verdict+(rc.score?' '+rc.score:'')+'</span>':'<span class="rug-badge muted">—</span>';
+      var tokenCell;
+      if(meta){
+        tokenCell='<div style="display:flex;align-items:center;gap:8px">'
+          +'<div style="width:9px;height:9px;border-radius:50%;background:'+meta.color+';flex-shrink:0"></div>'
+          +'<div><div style="font-size:13px;font-weight:600">'+meta.symbol+'</div>'
+          +'<div style="font-family:var(--mono);font-size:10px;color:var(--muted2)">'+meta.name+'</div></div></div>'
+          +(isDust?'<span class="dust-b">DUST</span>':'');
+      } else {
+        var sym=rc&&rc.symbol?rc.symbol:t.mint.slice(0,6)+'…'+t.mint.slice(-4);
+        tokenCell='<div><div style="font-family:var(--mono);font-size:12px">'+sym+'</div>'
+          +'<div style="font-family:var(--mono);font-size:10px;color:var(--muted2)">'+t.mint.slice(0,6)+'…'+t.mint.slice(-4)+'</div></div>'
+          +(isDust?'<span class="dust-b">DUST</span>':'');
+      }
+      return '<tr><td>'+tokenCell+'</td>'
+        +'<td class="bal-c">'+(t.balance!==null?t.balance.toFixed(4):0)+'</td>'
+        +'<td class="usd-c">'+(t.usdValue>0?'$'+t.usdValue.toFixed(2):'—')+'</td>'
+        +'<td>'+rcBadge+'</td>'
+        +'<td><span style="font-family:var(--mono);font-size:11px;color:'+(t.balance>0?'var(--accent)':'var(--muted)')+'">'+( t.balance>0?'Active':'Empty')+'</span></td></tr>';
+    }).join('');
+  }
+
+  // Transactions
+  var txList=document.getElementById('tx-list');
+  var txs=p.recentTxs||[];
+  if(!txs.length){txList.innerHTML='<div class="tx-empty">No recent transactions found.</div>';}
+  else{
+    txList.innerHTML=txs.map(function(tx){
+      var dt=tx.blockTime?new Date(tx.blockTime).toLocaleString():'—';
+      return '<div class="tx-item"><div class="tx-dot '+(tx.status==='success'?'ok':'fail')+'"></div>'
+        +'<a class="tx-sig" href="https://explorer.solana.com/tx/'+tx.signature+'?cluster=devnet" target="_blank">'+tx.shortSig+'</a>'
+        +'<span class="tx-b '+(tx.status==='success'?'ok':'fail')+'">'+tx.status+'</span>'
+        +'<span class="tx-time">'+dt+'</span></div>';
+    }).join('');
+  }
+
+  // Protocols
+  var protos=p.detectedProtocols||[];
+  var pg=document.getElementById('proto-grid');
+  var np=document.getElementById('no-proto');
+  if(!protos.length){pg.innerHTML='';np.style.display='block';}
+  else{np.style.display='none';pg.innerHTML=protos.map(function(pr){
+    return '<div class="proto-card"><div class="proto-icon">'+pr.icon+'</div><div class="proto-name">'+pr.name+'</div><div class="proto-type">'+pr.type+'</div><span class="proto-risk '+pr.risk+'">'+pr.risk+' Risk</span></div>';
+  }).join('');}
+
+  // Approvals
+  var apTbody=document.getElementById('approvals-tbody');
+  setV('appr-cnt-tab',approvals.length?'('+approvals.length+')':'');
+  if(!approvals.length){
+    apTbody.innerHTML='<tr><td colspan="3"><div class="no-approvals">✅ No active token approvals found — wallet looks clean</div></td></tr>';
+  } else {
+    apTbody.innerHTML=approvals.map(function(a){
+      return '<tr>'
+        +'<td class="mint-c">'+a.mint.slice(0,8)+'…'+a.mint.slice(-6)+'</td>'
+        +'<td class="approval-delegate">'+a.shortDelegate+'</td>'
+        +'<td class="approval-amount">'+a.amount+' tokens ⚠</td>'
+        +'</tr>';
+    }).join('');
+  }
+
+  show('results');
+  document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function renderCompare(data){
+  var clr={LOW:'var(--accent)',MEDIUM:'var(--warn)',HIGH:'var(--danger)'};
+  var clrHex={LOW:'#00f0a0',MEDIUM:'#f59e0b',HIGH:'#ff3d3d'};
+  var dimDefs=[['Liquidity','liquidity'],['Concentration','concentration'],['Activity','activity'],['Security','security'],['Reliability','reliability']];
+
+  ['a','b'].forEach(function(k){
+    var p=data[k].portfolio, r=data[k].report;
+    var c=clr[r.riskLevel]||'var(--muted2)';
+    var ch=clrHex[r.riskLevel]||'#6b7a94';
+
+    // Score card
+    var sc=document.getElementById('cmp-'+k+'-score');
+    sc.innerHTML='<div class="cmp-hdr"><span class="cmp-tag">Wallet '+k.toUpperCase()+'</span>'
+      +'<span style="font-family:var(--mono);font-size:11px;color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;margin-left:8px">'+p.shortWallet+'</span></div>'
+      +'<div style="text-align:center;padding:12px 0;">'
+      +'<div style="font-size:52px;font-weight:900;font-family:var(--mono);color:'+c+';line-height:1">'+r.riskScore+'</div>'
+      +'<div style="font-family:var(--mono);font-size:11px;letter-spacing:0.1em;color:'+c+';margin-top:4px">'+r.riskLevel+' RISK</div>'
+      +'<div style="font-size:13px;color:var(--muted2);margin-top:10px;line-height:1.6">'+r.summary+'</div>'
+      +(r._demo?'<div style="font-family:var(--mono);font-size:10px;color:var(--warn);margin-top:8px;">⚠ On-device analysis</div>':'')
+      +'</div>';
+
+    // Wallet A/B column headers
+    document.getElementById('cmp-th-'+k).textContent='Wallet '+k.toUpperCase()+' — '+p.shortWallet;
+
+    // Flags
+    var flags=r.flags||[];
+    setV('cmp-'+k+'-flags-cnt',flags.length);
+    document.getElementById('cmp-'+k+'-flags').innerHTML=flags.length
+      ?flags.map(function(f){return '<div class="pitem"><div class="pbul w"></div><div class="ptext">'+f+'</div></div>';}).join('')
+      :'<div class="ptext" style="padding:8px 0;color:var(--muted)">No flags detected</div>';
+
+    // Recs
+    var recs=r.recommendations||[];
+    document.getElementById('cmp-'+k+'-recs').innerHTML=recs.length
+      ?recs.map(function(rc){return '<div class="pitem"><div class="pbul g"></div><div class="ptext">'+rc+'</div></div>';}).join('')
+      :'<div class="ptext" style="padding:8px 0;color:var(--muted)">No recommendations</div>';
+
+    // Tokens
+    var toks=p.tokens||[];
+    var tbody=document.getElementById('cmp-'+k+'-tokens');
+    tbody.innerHTML=toks.length?toks.map(function(t){
+      var rc=t.rugcheck;
+      var badge=rc?'<span class="rug-badge '+(rc.verdict==='GOOD'?'good':rc.verdict==='WARN'?'warn':'danger')+'">'+rc.verdict+'</span>':'<span class="rug-badge muted">—</span>';
+      return '<tr><td class="mint-c">'+t.mint.slice(0,6)+'…'+t.mint.slice(-4)+'</td><td class="bal-c">'+(t.balance||0).toFixed(4)+'</td><td>'+badge+'</td></tr>';
+    }).join(''):'<tr><td colspan="3" style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:12px;padding:20px">No tokens</td></tr>';
+
+    // Dimensions
+    var dims=r.dimensions||{};
+    document.getElementById('cmp-'+k+'-dims').innerHTML=dimDefs.map(function(d){
+      var val=dims[d[1]]||0;
+      var col=val>=70?'#ff3d3d':val>=40?'#f59e0b':'#00f0a0';
+      return '<div class="dim-row"><div class="dim-name">'+d[0]+'</div>'
+        +'<div class="dim-bar"><div class="dim-fill" style="width:'+val+'%;background:'+col+'"></div></div>'
+        +'<div class="dim-score">'+val+'</div></div>';
+    }).join('');
+  });
+
+  // Stats comparison table
+  var pA=data.a.portfolio, pB=data.b.portfolio;
+  var rA=data.a.report, rB=data.b.report;
+  var rows=[
+    ['Risk Score', rA.riskScore+'/100', rB.riskScore+'/100', rA.riskScore<rB.riskScore],
+    ['Risk Level', rA.riskLevel, rB.riskLevel, false],
+    ['Net Worth', pA.totalUsd?'$'+pA.totalUsd.toFixed(2):'N/A', pB.totalUsd?'$'+pB.totalUsd.toFixed(2):'N/A', false],
+    ['SOL Balance', pA.solBalance.toFixed(4), pB.solBalance.toFixed(4), pA.solBalance>pB.solBalance],
+    ['Active Tokens', (pA.activeTokens?pA.activeTokens.length:0), (pB.activeTokens?pB.activeTokens.length:0), false],
+    ['Dust Tokens', (pA.dustTokens?pA.dustTokens.length:0), (pB.dustTokens?pB.dustTokens.length:0), (pA.dustTokens?pA.dustTokens.length:0)<(pB.dustTokens?pB.dustTokens.length:0)],
+    ['Transactions', pA.totalTxCount||0, pB.totalTxCount||0, (pA.totalTxCount||0)>(pB.totalTxCount||0)],
+    ['Failed Txs', pA.failedTxCount||0, pB.failedTxCount||0, (pA.failedTxCount||0)<(pB.failedTxCount||0)],
+    ['Wallet Age', (pA.walletAgeDays||'—')+' days', (pB.walletAgeDays||'—')+' days', false],
+    ['Risk Flags', (rA.flags||[]).length, (rB.flags||[]).length, (rA.flags||[]).length<(rB.flags||[]).length],
+  ];
+  document.getElementById('cmp-stats-tbody').innerHTML=rows.map(function(row){
+    var aWin=row[3]===true;
+    var bWin=row[3]===false&&row[1]!==row[2];
+    return '<tr><td style="font-family:var(--mono);font-size:11px;color:var(--muted2)">'+row[0]+'</td>'
+      +'<td style="font-family:var(--mono);font-size:12px;'+(aWin?'color:var(--accent);font-weight:700':'')+'">'+row[1]+(aWin?' ✓':'')+'</td>'
+      +'<td style="font-family:var(--mono);font-size:12px;'+(bWin?'color:var(--accent);font-weight:700':'')+'">'+row[2]+(bWin?' ✓':'')+'</td></tr>';
+  }).join('');
+
+  // Show results
+  var el=document.getElementById('cmp-results');
+  el.style.display='block';
+  el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+
+
+// ── GAUGE ─────────────────────────────────────
+function animateGauge(score,level){
+  var clr={LOW:'#00f0a0',MEDIUM:'#f59e0b',HIGH:'#ff3d3d'};
+  var fill=document.getElementById('g-fill');
+  var num=document.getElementById('g-num');
+  var circ=2*Math.PI*52;
+  fill.style.strokeDashoffset=circ-(circ*score/100);
+  fill.style.stroke=clr[level]||'#00f0a0';
+  num.style.color=clr[level]||'#00f0a0';
+  var cur=0, step=score/45;
+  var iv=setInterval(function(){cur=Math.min(cur+step,score);num.textContent=Math.round(cur);if(cur>=score)clearInterval(iv);},18);
+}
+
+// ── RADAR ─────────────────────────────────────
+function renderRadar(dims){
+  var svg=document.getElementById('radar-svg');
+  var cx=75,cy=75,r=55;
+  var labels=['Liquidity','Concentration','Activity','Security','Reliability'];
+  var keys=['liquidity','concentration','activity','security','reliability'];
+  var angles=keys.map(function(_,i){return(i*72-90)*Math.PI/180;});
+  var pt=function(rad,angle){return[cx+rad*Math.cos(angle),cy+rad*Math.sin(angle)];};
+  var html=[0.25,0.5,0.75,1].map(function(f){
+    return '<polygon points="'+angles.map(function(a){return pt(r*f,a).join(',');}).join(' ')+'" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>';
+  }).join('');
+  html+=angles.map(function(a){var p=pt(r,a);return '<line x1="'+cx+'" y1="'+cy+'" x2="'+p[0]+'" y2="'+p[1]+'" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>';}).join('');
+  var vals=keys.map(function(k){return(dims[k]||0)/100;});
+  html+='<polygon points="'+vals.map(function(v,i){return pt(r*v,angles[i]).join(',');}).join(' ')+'" fill="rgba(0,240,160,0.12)" stroke="#00f0a0" stroke-width="1.5"/>';
+  html+=vals.map(function(v,i){var p=pt(r*v,angles[i]);return '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="3" fill="#00f0a0"/>';}).join('');
+  html+=labels.map(function(l,i){var p=pt(r+14,angles[i]);return '<text x="'+p[0]+'" y="'+p[1]+'" text-anchor="middle" dominant-baseline="middle" font-size="9" fill="rgba(255,255,255,0.4)" font-family="monospace">'+l+'</text>';}).join('');
+  svg.innerHTML=html;
+}
+
+// ── TABS ──────────────────────────────────────
+function showTab(name){
+  var names=['overview','tokens','transactions','protocols','approvals'];
+  document.querySelectorAll('.rtab').forEach(function(t,i){t.classList.toggle('on',names[i]===name);});
+  document.querySelectorAll('.rpanel').forEach(function(p){p.classList.toggle('on',p.id==='tab-'+name);});
+}
+
+// ── ANIMATED NUMBER ───────────────────────────
+function animateNum(id,val,prefix,suffix,decimals){
+  var el=document.getElementById(id);
+  if(!el) return;
+  var cur=0, target=val, step=target/50;
+  var iv=setInterval(function(){
+    cur=Math.min(cur+step,target);
+    el.textContent=(prefix||'')+(cur).toFixed(decimals||0)+(suffix||'');
+    if(cur>=target)clearInterval(iv);
+  },18);
+}
+
+// ── ACTIONS ───────────────────────────────────
+function copyWallet(){
+  navigator.clipboard.writeText(currentWallet).then(function(){
+    var b=document.querySelector('.copy-btn');
+    b.textContent='copied!';b.style.color='var(--accent)';
+    setTimeout(function(){b.textContent='copy';b.style.color='';},1500);
+  });
+}
+function shareReport(){
+  var url=window.location.origin+'?wallet='+encodeURIComponent(currentWallet);
+  navigator.clipboard.writeText(url).then(function(){alert('Share link copied to clipboard!');});
+}
+function newScan(){hide('results');document.getElementById('cmp-results').style.display='none';hideErr();document.getElementById('w1').value='';document.getElementById('w1').focus();}
+
+function exportTxt(){
+  if(!currentReport||!currentPortfolio) return;
+  var lines=['═══════════════════════════════════════','  SOLROUTER DEFI RISK INTELLIGENCE v2.1','═══════════════════════════════════════',
+    '  '+new Date().toLocaleString(),'  Wallet: '+currentPortfolio.wallet,'  Network: Solana Devnet','',
+    '  RISK SCORE: '+currentReport.riskScore+' / 100','  RISK LEVEL: '+currentReport.riskLevel,'  NET WORTH: $'+(currentPortfolio.totalUsd||0).toFixed(2),'',
+    '  SUMMARY:','  '+currentReport.summary,'','  PORTFOLIO:',
+    '  SOL Balance: '+currentPortfolio.solBalance.toFixed(4)+' SOL','  SOL Price: $'+(currentPortfolio.solPrice||0).toFixed(2),
+    '  Total Tokens: '+currentPortfolio.tokenCount,'  Wallet Age: '+(currentPortfolio.walletAgeDays||'?')+' days',
+    '  Transactions: '+currentPortfolio.totalTxCount,'  Failed Txs: '+currentPortfolio.failedTxCount,
+    '  Active Approvals: '+currentApprovals.length,'',
+    '  RISK FLAGS:'].concat((currentReport.flags||[]).map(function(f){return '  • '+f;})).concat(['','  RECOMMENDATIONS:']).concat((currentReport.recommendations||[]).map(function(r){return '  → '+r;})).concat(['','  RISK DIMENSIONS:']).concat(Object.entries(currentReport.dimensions||{}).map(function(e){return '  '+e[0]+': '+e[1]+'/100';})).concat(['','  Powered by SolRouter encrypted inference','  Built by OlaTech IT · x.com/Olamiayan','═══════════════════════════════════════']);
+  var blob=new Blob([lines.join('\n')],{type:'text/plain'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='solrouter-report-'+currentPortfolio.shortWallet+'.txt';a.click();
+}
+
+function exportCsv(){
+  if(!currentPortfolio) return;
+  var rows=[['Mint','Balance','USD Value','RugCheck Score','RugCheck Verdict','Status']];
+  (currentPortfolio.tokens||[]).forEach(function(t){
+    var rc=t.rugcheck;
+    rows.push([t.mint,t.balance||0,t.usdValue?t.usdValue.toFixed(4):'0',rc?rc.score:'',rc?rc.verdict:'',t.balance>0?'Active':'Empty']);
+  });
+  var csv=rows.map(function(r){return r.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"';}).join(',');}).join('\n');
+  var blob=new Blob([csv],{type:'text/csv'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='solrouter-tokens-'+currentPortfolio.shortWallet+'.csv';a.click();
+}
+
+// ── UTILS ─────────────────────────────────────
+function show(id){var el=document.getElementById(id);if(el)el.classList.add('on');}
+function hide(id){var el=document.getElementById(id);if(el)el.classList.remove('on');}
+function setV(id,val){var el=document.getElementById(id);if(el)el.textContent=val;}
+function setClass(id,cls){var el=document.getElementById(id);if(el)el.className=cls;}
+function showErr(msg){var el=document.getElementById('err-box');el.textContent='⚠ '+msg;el.classList.add('on');}
+function hideErr(){document.getElementById('err-box').classList.remove('on');}
+
+// ── INIT ──────────────────────────────────────
+document.getElementById('w1').addEventListener('keydown',function(e){if(e.key==='Enter')runScan();});
+document.getElementById('wA').addEventListener('keydown',function(e){if(e.key==='Enter')runScan();});
+document.getElementById('wB').addEventListener('keydown',function(e){if(e.key==='Enter')runScan();});
+var urlW=new URLSearchParams(window.location.search).get('wallet');
+if(urlW){document.getElementById('w1').value=urlW;setTimeout(runScan,500);}
+renderChips();
+</script>
+</body>
+</html>
