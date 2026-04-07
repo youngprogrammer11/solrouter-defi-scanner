@@ -6,6 +6,19 @@
 **Powered by [SolRouter](https://solrouter.com) · [Nosana Network](https://nosana.io) · [Solana](https://solana.com)**
 
 ---
+## 📸 Screenshots
+
+### Risk Dashboard
+![Dashboard](./screenshots/1-dashboard.png)
+
+### Scan Results
+![Scan Result](./screenshots/2-scan-result.png)
+
+### Token Analysis with RugCheck
+![Tokens](./screenshots/3-tokens-tab.png)
+
+### Wallet Comparison
+![Compare](./screenshots/4-compare-wallets.png)
 
 ## 🧠 What It Does
 
